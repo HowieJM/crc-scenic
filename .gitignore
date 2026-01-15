@@ -33,3 +33,7 @@ reports/
 # OS/editor cruft
 .DS_Store
 Thumbs.db
+# Local outputs (not versioned)
+outputs/*
+!outputs/.gitkeep
+!outputs/README.md
