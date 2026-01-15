@@ -1,0 +1,35 @@
+# R
+.Rhistory
+.Rproj.user/
+.RData
+.Ruserdata
+*.Rproj
+
+# Nextflow / workflow outputs
+work/
+out/
+results/
+reports/
+.nextflow*
+*.report.html
+*.timeline.html
+*.dag.svg
+*.log
+
+# Large data/artifacts (do not version)
+*.loom
+*.rds
+*.rda
+*.h5
+*.h5ad
+*.feather
+*.csv
+*.tsv
+*.gz
+*.zip
+*.png
+*.pdf
+
+# OS/editor cruft
+.DS_Store
+Thumbs.db
