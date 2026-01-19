@@ -22,7 +22,7 @@
 | *(optional)* `encode_…genes_vs_tracks.rankings.feather` | ENCODE TF tracks | ENCODE / pySCENIC | 
 | *(optional)* `encode_…track_to_tf…tsv` | ENCODE TF track→TF mapping | ENCODE / pySCENIC | 
 
-> We do **not** redistribute the TAS Seurat object or derived loom. This repository begins at the TAS-only loom; however, the scripts to regenerate it from the TAS Seurat object are provided in `scripts/prefiltering/`.
+> Note: we do **not** here redistribute the TAS Seurat object or derived loom, due to size and liscensing. This repository begins at the TAS-only loom file, see below. However, the scripts to regenerate this loom from the TAS Seurat object are provided in `scripts/prefiltering/`.
 
 ## Main scRNA CRC-TAS Loom File Provenance:
 - **Raw scRNA-seq**: Joanito et al. (Nat Genet 2022), Synapse **syn26844071** (raw scRNA CRC Seurat) 
