@@ -3,7 +3,7 @@
 > This repo **starts with the TAS-derived loom** file (as defined below). 
 > It then runs pySCENIC multirun + downstream analyses.
 
-> **Third-party** resources are **not** bundled, due to GitHub space & licensing
+> **Third-party** resources are **not** bundled, due to GitHub space & licensing.
 > But, scripts to create the core loom file from the scRNA Seurat data are included.
 
 ##
