@@ -1,0 +1,7 @@
+*
+# Keep the subfolder structure and this .gitignore
+!.gitignore
+# Keep the pyscenic_resources README only
+!pyscenic_resources/
+pyscenic_resources/*
+!pyscenic_resources/README_resources.md
