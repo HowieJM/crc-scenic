@@ -48,7 +48,7 @@ ds.close() #close when done
 
 # Minimal REPL example (generic):
 >>> import loompy
->>> ds = loompy.connect("path/to/example.loom")
+>>> ds = loompy.connect("path/to/example.loom", mode="r") 
 >>> ds
 >>> ds.close() #close when done
 ```
