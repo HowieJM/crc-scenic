@@ -25,7 +25,10 @@
 # Prepare Environment
 
 out_folder <- file.path("outputs", "20241105_PrepFilteredscRNA_for_PyScenic_to_save_seurat_RDS")
-dir.create(out_folder, recursive = TRUE, showWarnings = FALSE)
+dir.create(out_folder, recursive = TRUE, showWarnings = FALSE) #for plots
+
+resources_dir <- Sys.getenv("RESOURCES_DIR", unset = file.path("resources", "pyscenic_resources"))
+dir.create(resources_dir, recursive = TRUE, showWarnings = FALSE) #for loom, to use in SCENIC
 
 set.seed(1414)
 
@@ -211,8 +214,13 @@ default.umap <- Embeddings(so, reduction = "umap")
 default.umap.name <- "UMAP"
 
 # Create the loom file
-file.name <- paste(out_folder, "/Joanito_StromaOnly_Filtered_Seurat_Object_All_Cohorts_FullDataSet_SCopeLoomR.loom", sep = "")
+file.name <- file.path(
+  resources_dir,
+  "Joanito_StromaOnly_Filtered_Seurat_Object_All_Cohorts_FullDataSet_SCopeLoomR.loom"
+)
+
 project.title <- "Magdalena Stroma Project - Filtered Data, All Cohorts"
+
 build_loom(
   file.name = file.name,
   dgem = dgem,
@@ -224,8 +232,8 @@ build_loom(
 
 
 # Inspect Loom:
-#loom_file <- H5File$new("20240812_PrepFilteredscRNA_for_PyScenic/Joanito_StromaOnly_Filtered_Seurat_Object_Main_Cohort_CRC-SG1_100_MINIsubset_SCopeLoomR.loom", mode = "r")
-loom_file <- H5File$new("20240902_PrepFilteredscRNA_for_PyScenic/Joanito_StromaOnly_Filtered_Seurat_Object_All_Cohorts_FullDataSet_SCopeLoomR.loom", mode = "r")
+stopifnot(file.exists(file.name))
+loom_file <- H5File$new(file.name, mode = "r")
 
 # List contents
 loom_file$ls(recursive = TRUE)
@@ -245,63 +253,7 @@ loom_file[["matrix"]]    #expression matrix
 # Close the Loom file
 loom_file$close_all()
 
-
-
-# 2 - Raw, Test Subset
-
-so1 <- subset(sox, subset = cohort == "CRC-SG1")
-set.seed(123) 
-cells_to_keep <- sample(Cells(so1), 100)
-so2 <- subset(so1, cells = cells_to_keep)
-
-# Note - just use main layer, the PCA etc., have different matrix size; can re-import after pySCENIC if needed
-print(so2)
-
-# SCopeLoomR:
-
-# Extract raw count matrix [can also use normalized if intergrated retaining all genes]
-dgem <- GetAssayData(so2, assay = "RNA", slot = "counts")
-dim(dgem)
-head(colnames(dgem)) # columns => cell IDs
-
-# Extract cell-level metadata
-cell.info <- so2@meta.data
-
-# Extract Gene Metadata (if any)
-gene.info <- data.frame(Gene = rownames(dgem))
-
-# Create the loom file
-file.name <- paste(out_folder, "/Joanito_StromaOnly_Filtered_Seurat_Object_Main_Cohort_CRC-SG1_100_MINIsubset_SCopeLoomR.loom", sep = "")
-project.title <- "Magdalena Stroma Project"
-build_loom(
-  file.name = file.name,
-  dgem = dgem,
-  title = project.title,
-  genome = "human"
-)
-
-# Inspect Loom:
-loom_file <- H5File$new("20240902_PrepFilteredscRNA_for_PyScenic/Joanito_StromaOnly_Filtered_Seurat_Object_Main_Cohort_CRC-SG1_100_MINIsubset_SCopeLoomR.loom", mode = "r")
-
-# List contents
-loom_file$ls(recursive = TRUE)
-
-loom_file[["attrs/LOOM_SPEC_VERSION"]][] #3.0.0 -> this is a key global attrbiute, which MUST be so
-
-loom_file[["layers"]]
-
-loom_file[["col_attrs/CellID"]]
-loom_file[["row_attrs/Gene"]]
-
-loom_file[["col_attrs"]] #cell metadata
-loom_file[["row_attrs"]] #gene metadata
-
-loom_file[["matrix"]]    #expression matrix
-
-# Close the Loom file
-loom_file$close_all()
-
-
+#
 
 #############################################################
 sI <- sessionInfo()
@@ -310,7 +262,3 @@ saveRDS(object = sI, file = out_file)
 out_file_txt <- paste(out_folder, "/sessionInfo.txt", sep = "")
 writeLines(capture.output(sessionInfo()), con = out_file_txt)
 #############################################################
-
-
-
-
