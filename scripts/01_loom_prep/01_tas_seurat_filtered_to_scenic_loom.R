@@ -53,7 +53,7 @@ suppressPackageStartupMessages({
 # Load Data 
 
 # Seurat Object - Data -> scRNA, Joanito et al.2022, colorectal, 10X GRCh38 - stromal cells - patients with >20 stromal cells, 5 cohorts
-so <- readRDS("DATA_Joanito_Stroma-only.rds") #contact Deitmar 
+so <- readRDS("DATA_Joanito_Stroma-only.rds") #contact Dietmar if requiring file 
 
 DefaultAssay(so) <- "RNA"   #to extract raw counts
 
@@ -238,7 +238,7 @@ loom_file <- H5File$new(file.name, mode = "r")
 # List contents
 loom_file$ls(recursive = TRUE)
 
-loom_file[["attrs/LOOM_SPEC_VERSION"]][] #3.0.0 -> this is a key global attrbiute, which MUST be so
+loom_file[["attrs/LOOM_SPEC_VERSION"]][] #3.0.0 -> this is a key global attribute, which MUST be so
 
 loom_file[["layers"]]
 
