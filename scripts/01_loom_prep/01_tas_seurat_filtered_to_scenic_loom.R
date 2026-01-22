@@ -53,7 +53,7 @@ suppressPackageStartupMessages({
 # Load Data 
 
 # Seurat Object - Data -> scRNA, Joanito et al.2022, colorectal, 10X GRCh38 - stromal cells - patients with >20 stromal cells, 5 cohorts
-so <- readRDS("DATA_Joanito_Stroma-only.rds")
+so <- readRDS("DATA_Joanito_Stroma-only.rds") #contact Deitmar 
 
 DefaultAssay(so) <- "RNA"   #to extract raw counts
 
