@@ -44,13 +44,13 @@ import loompy
 # example: SCENIC input loom in this repo layout
 ds = loompy.connect("resources/pyscenic_resources/Joanito_StromaOnly_Filtered_Seurat_Object_All_Cohorts_FullDataSet_SCopeLoomR.loom", mode="r")
 list(ds.attrs.items())   # show global attributes
-ds.close()
+ds.close() #close when done
 
 # Minimal REPL example (generic):
 >>> import loompy
->>> ds = loompy.connect("cortex.loom")
+>>> ds = loompy.connect("path/to/example.loom")
 >>> ds
->>> ds.close()
+>>> ds.close() #close when done
 ```
 
 
