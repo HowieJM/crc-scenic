@@ -105,21 +105,24 @@ wget "${FEATHER_DB_URL}"
 ```bash
 wget https://resources.aertslab.org/cistarget/motif2tf/motifs-v10nr_clust-nr.hgnc-m0.001-o0.0.tbl
 ```
-For calrity, the TF list is used by **GRNBoost2** to infer GRNs based on TF–gene co-expression across cells. **cisTarget** then uses the matched v10 motif-ranking database and motif→TF annotation files to prune putative TF GRN modules, to retain only those where a TF’s target motifs are enriched within ±10 kb of the target gene’s TSS. In this repo, we use **cisTarget v10 files**. Note that Aerts Lab host alternatives (not used here), including promoter-centric (±500 bp). 
+For clarity, the TF list is used by **GRNBoost2** to infer GRNs based on TF–gene co-expression across cells. **cisTarget** then uses the matched v10 motif-ranking database and motif→TF annotation files to prune putative TF network modules, to retain only those where a TF’s target motifs are enriched within ±10 kb of the target gene’s TSS. In this repo, we use **cisTarget v10 files**. Note that Aerts Lab host alternatives (not used here), including promoter-centric (±500 bp). 
 
 Activity scores per regulon are calculated later via **AUCell**.
 
-**Optional tracks.** In addition to motif files, you can choose to include the ENCODE **track rankings** database and **track→TF** mapping so cisTarget can prune modules by **track enrichment** (experimental TF-binding signal from ChIP/ATAC) rather than—or in addition to—sequence PWMs. Tracks are complementary to motifs; if you use them, download the hg38 v10 `genes_vs_tracks.rankings.feather` and the matching `track_to_tf` TSV, and set the `tracksDb` / `tracksAnnotation` paths in the config as shown below.
+**Optional tracks.** In addition to motif files, you can choose to include the ENCODE **track rankings** database and **track→TF** mapping so cisTarget can prune modules by **track enrichment** (experimental TF-binding signal from ChIP/ATAC) rather than—or in addition to—sequence PWMs. Tracks are complementary to motifs; if you use them, download the hg38 v10 `genes_vs_tracks.rankings.feather` and the matching `track_to_tf` TSV, and set the `tracksDb` / `tracksAnnotation` paths in the config.
 
+4) Track rankings database
 ```bash
 TRACK_DB_URL='https://resources.aertslab.org/cistarget/databases/homo_sapiens/hg38/refseq_r80/tc_v1/gene_based/encode_20190621__ChIP_seq_transcription_factor.hg38__refseq-r80__10kb_up_and_down_tss.max.genes_vs_tracks.rankings.feather'
 wget "${TRACK_DB_URL}"
 ```
+
+5) Track→TF file
 ```bash
 wget https://resources.aertslab.org/cistarget/track2tf/encode_project_20190621__ChIP-seq_transcription_factor.homo_sapiens.hg38.bigwig_signal_pvalue.track_to_tf_in_motif_to_tf_format.tsv
 ```
 
-To check completeness of the motif ranking database and if used the track database, run these optional checksums:
+To check completeness of the motif rankings database, and, if used, the track database, run these optional checksums:
 
 Motif rankings (cisTarget v10) checksum
 ```bash
