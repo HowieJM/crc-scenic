@@ -66,7 +66,7 @@ ls -l ~/.nextflow/assets/HowieJM/vsn-pipelines
 **VSN-pipelines upstream is not maintained, so this fork allows:**
 - up-to-date **cisTarget v10** motif databases
 - multirun **parallel** mode works
-- but, skips visula reports by default (`skipReports = true`) to avoid broken reports 
+- but, skips visual reports by default (`skipReports = true`) to avoid broken reports 
 
 **Alternative (not recommended)**
   - upstream: `vib-singlecell-nf/vsn-pipelines` (last maintained before these fixes)
@@ -79,9 +79,10 @@ ls -l ~/.nextflow/assets/HowieJM/vsn-pipelines
 ### IN PROGRESS - BELOW NOT FIXED CODE
 
 
---------------------------------------------------------------------------------
-Acquire motif/track resources (if not already present)
---------------------------------------------------------------------------------
+## Acquire motif/track resources (if not already present)
+
+With the the environment and pipe ready, we can prepare the data resources needed
+
 # Choose a resources directory (default in this repo layout):
 export RESOURCES_DIR="${PWD}/resources/pyscenic_resources"
 mkdir -p "$RESOURCES_DIR" && cd "$RESOURCES_DIR"
