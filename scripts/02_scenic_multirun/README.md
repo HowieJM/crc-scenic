@@ -20,7 +20,7 @@ This runbook assumes you have produced a TAS-only loom file using the scripts in
    - Jupyter tunnel note: `scripts/01_loom_prep/03_jupyter_tunnel.md`
 
 
-## Set up environment (on the Virtual Machine, Work Station or equivalent)
+## Set up environment (on the Virtual Machine, Workstation or equivalent)
 
 1) Create/activate a conda env (you can reuse any sensible env)
 ```bash
@@ -213,7 +213,7 @@ out/scenic/<project>__25Runs__YYYY_MM_DD/data/<project>__25Runs__YYYY_MM_DD.SCEN
 .
 ## End
 
-Use the ouput loom in step 03 (import to Seurat):  
+Use the output loom in step 03 (import to Seurat):  
 ```
 scripts/03_downstream/01_import_SCENIC_to_Seurat.R
 ```
