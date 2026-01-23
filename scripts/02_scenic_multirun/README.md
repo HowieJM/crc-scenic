@@ -2,11 +2,12 @@
 
 **Purpose:** run pySCENIC **multirun** via the VSN Nextflow pipeline fork https://github.com/HowieJM/vsn-pipelines
 
-This runbook assumes you have produced a TAS-only loom file using the scripts in "01_loom_prep"
-
 .
 
 ## Prerequisites
+
+This runbook assumes you have produced a TAS-only loom file using the scripts in "01_loom_prep":
+
 1) Build the TAS-only SCENIC input loom (script **01**):
    `scripts/01_loom_prep/01_tas_seurat_filtered_to_scenic_loom.R`
    - Loom should be at: `resources/pyscenic_resources/Joanito_StromaOnly_Filtered_Seurat_Object_All_Cohorts_FullDataSet_SCopeLoomR.loom`
