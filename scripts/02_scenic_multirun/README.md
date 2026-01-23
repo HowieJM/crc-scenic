@@ -76,6 +76,9 @@ ls -l ~/.nextflow/assets/HowieJM/vsn-pipelines
 
 
 
+### IN PROGRESS - BELOW NOT FIXED CODE
+
+
 --------------------------------------------------------------------------------
 Acquire motif/track resources (if not already present)
 --------------------------------------------------------------------------------
