@@ -93,17 +93,17 @@ mkdir -p "$RESOURCES_DIR" && cd "$RESOURCES_DIR"
 
 Then obtain the following files:
 
-1) TF list (hg38) -> a list of transcription factors
+1) TF list (hg38) -> a list of transcription factors for network inference via GRNBoost2
 ```bash
 wget https://resources.aertslab.org/cistarget/tf_lists/allTFs_hg38.txt
 ```
 
-2) Motif rankings (cisTarget v10, hg38) -> per-gene rankings of motif enrichment, ±10 kb around TSS
+2) Motif rankings database (v10, hg38, ±10 kb) -> per-gene rankings of motif enrichment for cisTarget 
 ```bash
 FEATHER_DB_URL='https://resources.aertslab.org/cistarget/databases/homo_sapiens/hg38/refseq_r80/mc_v10_clust/gene_based/hg38_10kbp_up_10kbp_down_full_tx_v10_clust.genes_vs_motifs.rankings.feather'
 wget "${FEATHER_DB_URL}"
 ```
-In this repo, we use **cisTarget v10 rankings with ±10 kb around TSS** (full transcript + matching v10 motif→TF table). Aerts Lab host *alternatives, including:* promoter-centric (**±500 bp**), extended (**±20 kb**). 
+In this repo, we use **cisTarget v10 rankings database with ±10 kb around TSS** (full transcript + matching v10 motif→TF table). Aerts Lab host *alternatives, including:* promoter-centric (**±500 bp**), not used here. 
 
 
 
