@@ -1,5 +1,7 @@
 # SCENIC multirun (VSN pipelines) — runbook
 
+.
+
 **Purpose:** run pySCENIC **multirun** via the VSN Nextflow pipeline fork https://github.com/HowieJM/vsn-pipelines
 
 .
