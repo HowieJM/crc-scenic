@@ -1,7 +1,9 @@
 # SCENIC multirun (VSN pipelines) — runbook
 
 
-**Purpose:** run pySCENIC **multirun** via the VSN Nextflow pipeline, using the fork: https://github.com/HowieJM/vsn-pipelines
+**Purpose:** run pySCENIC **multirun** via the VSN Nextflow pipeline, using the fork: 
+
+https://github.com/HowieJM/vsn-pipelines
 
 .
 
@@ -76,7 +78,7 @@ ls -l ~/.nextflow/assets/HowieJM/vsn-pipelines
 
 ## Acquire motif/track resources (if not already present)
 
-With the the environment and pipeline prepared and the loom filed added to the resources, we can now prepare the further data resources needed to run SCENIC. To do so:
+With the environment and pipeline prepared and the loom file added to the resources, we can now prepare the further data resources needed to run SCENIC. To do so:
 
 
 First, choose a resources directory (default in this repo layout):
@@ -103,7 +105,9 @@ wget "${FEATHER_DB_URL}"
 ```bash
 wget https://resources.aertslab.org/cistarget/motif2tf/motifs-v10nr_clust-nr.hgnc-m0.001-o0.0.tbl
 ```
-The TF list is used by **GRNBoost2** to infer GRNs based on TF–gene co-expression across cells. **cisTarget** then uses the matched v10 motif-ranking database and motif→TF annotation files to prune putative TF network modules, retaining only those where a TF’s target motifs are enriched within ±10 kb of the target gene’s TSS. In this repo, we use **cisTarget v10 files**. Note that Aerts Lab host alternatives (not used here), including promoter-centric (±500 bp). Activity scores per regulon are calculated later via **AUCell**.
+For calrity, the TF list is used by **GRNBoost2** to infer GRNs based on TF–gene co-expression across cells. **cisTarget** then uses the matched v10 motif-ranking database and motif→TF annotation files to prune putative TF GRN modules, to retain only those where a TF’s target motifs are enriched within ±10 kb of the target gene’s TSS. In this repo, we use **cisTarget v10 files**. Note that Aerts Lab host alternatives (not used here), including promoter-centric (±500 bp). 
+
+Activity scores per regulon are calculated later via **AUCell**.
 
 **Optional tracks.** In addition to motif files, you can choose to include the ENCODE **track rankings** database and **track→TF** mapping so cisTarget can prune modules by **track enrichment** (experimental TF-binding signal from ChIP/ATAC) rather than—or in addition to—sequence PWMs. Tracks are complementary to motifs; if you use them, download the hg38 v10 `genes_vs_tracks.rankings.feather` and the matching `track_to_tf` TSV, and set the `tracksDb` / `tracksAnnotation` paths in the config as shown below.
 
@@ -115,17 +119,22 @@ wget "${TRACK_DB_URL}"
 wget https://resources.aertslab.org/cistarget/track2tf/encode_project_20190621__ChIP-seq_transcription_factor.homo_sapiens.hg38.bigwig_signal_pvalue.track_to_tf_in_motif_to_tf_format.tsv
 ```
 
-To check completness of the motif ranking database and if used the track database, run these optional cheksums:
+To check completeness of the motif ranking database and if used the track database, run these optional checksums:
+
+Motif rankings (cisTarget v10) checksum
 ```bash
 wget https://resources.aertslab.org/cistarget/databases/homo_sapiens/hg38/refseq_r80/mc_v10_clust/gene_based/hg38_10kbp_up_10kbp_down_full_tx_v10_clust.genes_vs_motifs.rankings.feather.sha1sum.txt
 feather_database='hg38_10kbp_up_10kbp_down_full_tx_v10_clust.genes_vs_motifs.rankings.feather'
-awk -v feather_database="${feather_database}" '$2==feather_database' hg38_10kbp_up_10kbp_down_full_tx_v10_clust.genes_vs_motifs.rankings.feather.sha1sum.txt | sha1sum -c -
+awk -v feather_database="${feather_database}" '$2==feather_database' \
+  hg38_10kbp_up_10kbp_down_full_tx_v10_clust.genes_vs_motifs.rankings.feather.sha1sum.txt | sha1sum -c -
 ```
 
+Track rankings (ENCODE) checksum
 ```bash
 wget https://resources.aertslab.org/cistarget/databases/homo_sapiens/hg38/refseq_r80/tc_v1/gene_based/encode_20190621__ChIP_seq_transcription_factor.hg38__refseq-r80__10kb_up_and_down_tss.max.genes_vs_tracks.rankings.feather.sha1sum.txt
-feather_database=$(basename "${feather_database_url}")
-awk -v feather_database="${feather_database}" '$2 == feather_database' encode_20190621__ChIP_seq_transcription_factor.hg38__refseq-r80__10kb_up_and_down_tss.max.genes_vs_tracks.rankings.feather.sha1sum.txt | sha1sum -c -
+feather_database="$(basename "${TRACK_DB_URL}")"
+awk -v feather_database="${feather_database}" '$2==feather_database' \
+  encode_20190621__ChIP_seq_transcription_factor.hg38__refseq-r80__10kb_up_and_down_tss.max.genes_vs_tracks.rankings.feather.sha1sum.txt | sha1sum -c -
 ```
 
 # With the resources in place, return to your run directory
