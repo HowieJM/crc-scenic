@@ -176,7 +176,7 @@ If using option B, set the same fields as Option A (container, numRuns, resource
 
 ## Run pySCENIC multirun
 
-Now, we can run pySCENIC multirun via VSN-pipelines, using the fork for v10 files and parrallel processing
+Now, we can run pySCENIC multirun via VSN-pipelines, using the fork for v10 files and parallel processing
 
 This will run 25 times, and aggregate results 
 
@@ -201,7 +201,7 @@ nextflow -C "${PWD}/../../config/nf_CPUopt_scenic_multirun_25runs_minGene5.confi
   run HowieJM/vsn-pipelines -entry scenic -r master
 
 # Resume a partial run if needed:
-# nextflow -C ... run HowieJM/vsn-pipelines -entry scenic -r master
+# nextflow -C ... run HowieJM/vsn-pipelines -entry scenic -r master -resume
 ```
 
 ### Outputs
