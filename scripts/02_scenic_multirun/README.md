@@ -1,6 +1,5 @@
 # SCENIC multirun (VSN pipelines) — runbook
 
-.
 
 **Purpose:** run pySCENIC **multirun** via the VSN Nextflow pipeline fork https://github.com/HowieJM/vsn-pipelines
 
@@ -18,31 +17,47 @@ This runbook assumes you have produced a TAS-only loom file using the scripts in
    - Python checker: `scripts/01_loom_prep/02_check_loom_all.py`
    - Jupyter tunnel note: `scripts/01_loom_prep/03_jupyter_tunnel.md`
 
---------------------------------------------------------------------------------
-Set up environment (on the VM)
---------------------------------------------------------------------------------
-# Create/activate a conda env (you can reuse any sensible env)
+
+## Set up environment (on the Virtual Machine, Work Station or equivalent)
+
+1) Create/activate a conda env (you can reuse any sensible env)
+```bash
 conda create -n vsn_pipelines_env -c conda-forge -c bioconda -y
 conda activate vsn_pipelines_env
+```
 
-# Install Singularity (or Apptainer if your site uses that)
+2) Install Singularity (or Apptainer)
+```bash
 conda install -y conda-forge::singularity
+```
 
-# Install Nextflow (exact version used in the paper)
+3) Install Nextflow (from binary, and move to conda bin -> exact version)
+```bash
 wget https://github.com/nextflow-io/nextflow/releases/download/v21.04.3/nextflow-21.04.3-all
 mv nextflow-21.04.3-all nextflow && chmod +x nextflow
 mkdir -p "$CONDA_PREFIX/bin" && mv nextflow "$CONDA_PREFIX/bin/"
+```
 
-# Sanity checks
-singularity --version     # expect 3.8.x (or site-equivalent)
-nextflow -version         # expect 21.04.3
+4) Sanity checks
+```bash
+singularity --version     # expect 3.8.6 (or site-equivalent)
+nextflow -version         # expect 21.04.3 -> this is **crucial**
+```
 
-# (Optional) run long jobs in tmux
+5) (Optional) run long jobs in tmux
+```bash
 tmux new-session -s VSN_pySCENIC   # later: tmux attach -t VSN_pySCENIC
+```
 
-# Locale (some clusters require C for reproducibility)
+6) Locale (some clusters require C for reproducibility)
+```bash
 export LANG=C
 export LC_ALL=C
+```
+
+
+
+
 
 --------------------------------------------------------------------------------
 Acquire motif/track resources (if not already present)
