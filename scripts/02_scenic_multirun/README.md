@@ -71,7 +71,7 @@ ls -l ~/.nextflow/assets/HowieJM/vsn-pipelines
 **Alternative (not recommended)**
   - upstream: `vib-singlecell-nf/vsn-pipelines` (last maintained before these fixes)
   - works with **older** motif DBs only
-  - useful if using v9 motif DBs and wanting visual reports -> may run with patching
+  - useful if using v9 motif DBs and wanting visual reports -> may run with manual patching
 
 
 
