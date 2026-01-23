@@ -109,7 +109,7 @@ For clarity, the TF list is used by **GRNBoost2** to infer GRNs based on TF–ge
 
 Activity scores per regulon are calculated later via **AUCell**.
 
-**Optional tracks.** In addition to motif files, you can choose to include the ENCODE **track rankings** database and **track→TF** mapping so cisTarget can prune modules by **track enrichment** (experimental TF-binding signal from ChIP/ATAC) rather than—or in addition to—sequence PWMs. Tracks are complementary to motifs; if you use them, download the hg38 v10 track rankings and the matching track-to-tf TSV, and set the `tracksDb` / `tracksAnnotation` paths in the config.
+**Optional tracks.** In addition to motif files, you can choose to include the ENCODE **track rankings** database and **track→TF** mapping so cisTarget can prune modules by **track enrichment** (experimental TF-binding signal from ChIP/ATAC) rather than—or in addition to—sequence PWMs. Tracks are complementary to motifs; if you use them, download the matching track rankings and track-to-tf, and set `tracksDb` / `tracksAnnotation` paths in the config.
 
 4) Track rankings database
 ```bash
@@ -121,6 +121,8 @@ wget "${TRACK_DB_URL}"
 ```bash
 wget https://resources.aertslab.org/cistarget/track2tf/encode_project_20190621__ChIP-seq_transcription_factor.homo_sapiens.hg38.bigwig_signal_pvalue.track_to_tf_in_motif_to_tf_format.tsv
 ```
+
+.
 
 To check completeness of the motif rankings database, and, if used, the track database, run these optional checksums:
 
