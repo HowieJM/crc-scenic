@@ -6,7 +6,6 @@ In this runbook, I provide the relevant envrionment variables and scripts run py
 
 
 ## Prerequisites
---------------------------------------------------------------------------------
 1) Build the TAS-only SCENIC input loom (script **01**):
    `scripts/01_loom_prep/01_tas_seurat_filtered_to_scenic_loom.R`
    - Loom should be at: `resources/pyscenic_resources/Joanito_StromaOnly_Filtered_Seurat_Object_All_Cohorts_FullDataSet_SCopeLoomR.loom`
