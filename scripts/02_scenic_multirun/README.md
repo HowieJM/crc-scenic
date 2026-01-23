@@ -173,61 +173,46 @@ nextflow config HowieJM/vsn-pipelines \
 ```
 If using option B, set the same fields as Option A (container, numRuns, resource paths, skips, etc.)
 
-### IN PROGRESS - BELOW NOT FIXED CODE
 
+## Run pySCENIC multirun
 
+Now, we can run pySCENIC multirun via VSN-pipelines, using the fork for v10 files and parrallel processing
 
---------------------------------------------------------------------------------
-Run pySCENIC multirun
---------------------------------------------------------------------------------
-# Choose a clean run directory (work/ and out/ will be created here)
-RUN_DIR="${PWD}/runs/02_scenic_multirun"
+This will run 25 times, and aggregate results 
+
+> For detailed run instructions see the fork README: https://github.com/HowieJM/vsn-pipelines
+
+To run:
+```bash
+# 0) (Recommended) run inside tmux
+# attach if created earlier, or create a new session
+tmux attach -t VSN_pySCENIC || tmux new -s VSN_pySCENIC
+
+# 1) Choose a clean run directory (Nextflow will create work/ and out/ here)
+RUN_DIR="${PWD}/outputs/02_scenic_multirun"
 mkdir -p "$RUN_DIR" && cd "$RUN_DIR"
 
-# Locale (if needed for reproducibility on your cluster)
-export LANG=C
-export LC_ALL=C
+# 2) Locale (already exported above; re-export here only if needed)
+# export LANG=C
+# export LC_ALL=C
 
-# Launch
+# 3) Launch (uses committed config + VSN fork)
 nextflow -C "${PWD}/../../config/nf_CPUopt_scenic_multirun_25runs_minGene5.config" \
-  run vib-singlecell-nf/vsn-pipelines -profile scenic_multiruns
+  run HowieJM/vsn-pipelines -entry scenic -r master
 
-# - You can add `-resume` to continue from a previous partial run:
-# nextflow -C ... run vib-singlecell-nf/vsn-pipelines -profile scenic_multiruns -resume
+# Resume a partial run if needed:
+# nextflow -C ... run HowieJM/vsn-pipelines -entry scenic -r master
+```
 
-# Notes:
-# - Ensure Singularity/Apptainer cache and /tmp have enough space.
-# - Consider tmux for long sessions: tmux attach -t VSN_pySCENIC
-# - work/ and out/ live under RUN_DIR unless you override NXF_* env vars.
+### Outputs
+The aggregated SCENIC loom will be written under:
+```
+out/scenic/<project>__25Runs__YYYY_MM_DD/data/<project>__25Runs__YYYY_MM_DD.SCENIC.loom
+```
 
---------------------------------------------------------------------------------
-Outputs (where to find the aggregate loom)
---------------------------------------------------------------------------------
-# The Nextflow pipeline writes an aggregate SCENIC loom under out/scenic/…/data/
-# Example (path shape; names/timestamps vary):
-# out/scenic/<project>__25Runs__YYYY_MM_DD/data/<project>__25Runs__YYYY_MM_DD.SCENIC.loom
-#
-# That loom is the input for the downstream import step:
-# scripts/03_downstream/01_import_SCENIC_to_Seurat.R
+.
+## End
 
---------------------------------------------------------------------------------
-Real run settings (as in the paper)
---------------------------------------------------------------------------------
-# numRuns = 25
-# cpus = 32; num_workers = 32
-# min_genes_regulon = 5
-# min_regulon_gene_occurrence = 5
-# rank_threshold = 5000; nes_threshold = 3.0; auc_threshold = 0.05
-# skipReports = true
-# Container: aertslab/pyscenic_scanpy:0.12.0_1.9.1
-
-# CRUCIAL:
-# - Keep tracks* commented if you’re not using track pruning
-# - Ensure /tmp and cache dirs have space (failures can be opaque)
-# - If you patched utils.py as above, verify it remains patched in the cache
-
---------------------------------------------------------------------------------
-Next step
---------------------------------------------------------------------------------
-# Import SCENIC results into Seurat (AUC assays & embeddings):
-# scripts/03_downstream/01_import_SCENIC_to_Seurat.R
+Use the ouput loom in step 03 (import to Seurat):  
+`scripts/03_downstream/01_import_SCENIC_to_Seurat.R`
+.
