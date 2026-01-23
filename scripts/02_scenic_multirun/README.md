@@ -147,9 +147,6 @@ awk -v feather_database="${feather_database}" '$2==feather_database' \
 cd -
 ```
 
-### IN PROGRESS - BELOW NOT FIXED CODE
-
-
 ## Prepare the config file
 
 **Option A (recommended):** use the committed config 
@@ -175,6 +172,9 @@ nextflow config HowieJM/vsn-pipelines \
   > nf_draft.config
 ```
 If using option B, set he same fields as Option A (container, numRuns, resource paths, skips, etc.)
+
+### IN PROGRESS - BELOW NOT FIXED CODE
+
 
 
 --------------------------------------------------------------------------------
