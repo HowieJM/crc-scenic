@@ -214,5 +214,7 @@ out/scenic/<project>__25Runs__YYYY_MM_DD/data/<project>__25Runs__YYYY_MM_DD.SCEN
 ## End
 
 Use the ouput loom in step 03 (import to Seurat):  
-`scripts/03_downstream/01_import_SCENIC_to_Seurat.R`
+```
+scripts/03_downstream/01_import_SCENIC_to_Seurat.R
+```
 .
