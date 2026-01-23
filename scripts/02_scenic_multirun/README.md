@@ -1,6 +1,10 @@
-## SCENIC multirun (VSN pipelines) — runbook
+--------------------------------------------------------------------------------
+SCENIC multirun (VSN pipelines) — runbook
+--------------------------------------------------------------------------------
 
-Purpose: run pySCENIC **multirun** via the VSN Nextflow pipeline on a VM, using the TAS-only loom produced in step 01.
+**Purpose:** 
+
+run pySCENIC **multirun** via the VSN Nextflow pipeline on a VM, using the TAS-only loom produced in step 01, using the scripts in 01_loom_prep
 
 --------------------------------------------------------------------------------
 Prerequisites
