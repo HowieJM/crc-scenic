@@ -81,18 +81,33 @@ ls -l ~/.nextflow/assets/HowieJM/vsn-pipelines
 
 ## Acquire motif/track resources (if not already present)
 
-With the the environment and pipe ready, we can prepare the data resources needed
+With the the environment and pipe ready, we can prepare the data resources needed:
 
-# Choose a resources directory (default in this repo layout):
+
+First, choose a resources directory (default in this repo layout):
+
+```bash
 export RESOURCES_DIR="${PWD}/resources/pyscenic_resources"
 mkdir -p "$RESOURCES_DIR" && cd "$RESOURCES_DIR"
+```
 
-# 1) TF list (hg38)
+Then obtain the following files:
+
+1) TF list (hg38) -> a list of transcription factors
+```bash
 wget https://resources.aertslab.org/cistarget/tf_lists/allTFs_hg38.txt
+```
 
-# 2) Motif rankings (cisTarget v10, hg38)
+2) Motif rankings (cisTarget v10, hg38) -> per-gene rankings of motif enrichment, ±10 kb around TSS
+```bash
 FEATHER_DB_URL='https://resources.aertslab.org/cistarget/databases/homo_sapiens/hg38/refseq_r80/mc_v10_clust/gene_based/hg38_10kbp_up_10kbp_down_full_tx_v10_clust.genes_vs_motifs.rankings.feather'
 wget "${FEATHER_DB_URL}"
+```
+In this repo, we use **cisTarget v10 rankings with ±10 kb around TSS** (full transcript + matching v10 motif→TF table). Aerts Lab host *alternatives, including:* promoter-centric (**±500 bp**), extended (**±20 kb**). 
+
+
+
+
 
 #   Optional checksum
 wget https://resources.aertslab.org/cistarget/databases/homo_sapiens/hg38/refseq_r80/mc_v10_clust/gene_based/hg38_10kbp_up_10kbp_down_full_tx_v10_clust.genes_vs_motifs.rankings.feather.sha1sum.txt
@@ -114,6 +129,10 @@ wget https://resources.aertslab.org/cistarget/track2tf/encode_project_20190621__
 
 # Return to your run directory
 cd -
+
+
+
+
 
 --------------------------------------------------------------------------------
 Get the pipeline (fork vs upstream) and apply tiny patch if needed
