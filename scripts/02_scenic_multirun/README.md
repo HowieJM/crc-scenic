@@ -1,7 +1,7 @@
 # SCENIC multirun (VSN pipelines) — runbook
 
 
-**Purpose:** run pySCENIC **multirun** via the VSN Nextflow pipeline fork https://github.com/HowieJM/vsn-pipelines
+**Purpose:** run pySCENIC **multirun** via the VSN Nextflow pipeline, using the fork: https://github.com/HowieJM/vsn-pipelines
 
 .
 
@@ -81,7 +81,7 @@ ls -l ~/.nextflow/assets/HowieJM/vsn-pipelines
 
 ## Acquire motif/track resources (if not already present)
 
-With the the environment and pipe ready, we can prepare the data resources needed:
+With the the environment and pipeline prepared and the loom filed added to the resources, we can now prepare the further data resources needed to run SCENIC. To do so:
 
 
 First, choose a resources directory (default in this repo layout):
@@ -98,17 +98,15 @@ Then obtain the following files:
 wget https://resources.aertslab.org/cistarget/tf_lists/allTFs_hg38.txt
 ```
 
-2) Motif rankings (v10, hg38, ±10 kb) -> per-gene motif enrichment rankings for cisTarget pruning 
+2) Motif rankings database (v10, hg38, ±10 kb) -> per-gene motif enrichment rankings for cisTarget pruning 
 ```bash
 FEATHER_DB_URL='https://resources.aertslab.org/cistarget/databases/homo_sapiens/hg38/refseq_r80/mc_v10_clust/gene_based/hg38_10kbp_up_10kbp_down_full_tx_v10_clust.genes_vs_motifs.rankings.feather'
 wget "${FEATHER_DB_URL}"
 ```
 
-3) Motif→TF mapping (cisTarget v10, hg38) → mapping table linking motifs to TFs (must match v10)
+3) Motif→TF "motif2TF" mapping file (cisTarget v10, hg38) → mapping table linking motifs to TFs (must match v10)
 
-The TF list is used to ...
-
-In this repo, we use **cisTarget v10 rankings database with ±10 kb around TSS** (full transcript + matching v10 motif→TF table). Aerts Lab host *alternatives, including:* promoter-centric (**±500 bp**), not used here. 
+The TF list is used by GRNBoost2 to infer GRNs based on TF-gene coexpression across cells. cisTarget then uses the matched v10 motif ranking statistics database and motif2TF annotation files to prune putative TF network modules, retaining only those whose target genes are enriched for the TF’s cognate motifs within ±10 kb of the TSS. In this repo, we use **cisTarget v10 rankings database with ±10 kb around TSS** (full transcript + matching v10 motif→TF table). Note that Aerts Lab host *alternatives, including:* promoter-centric (**±500 bp**), not used here. 
 
 
 #   Optional checksum
