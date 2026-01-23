@@ -74,11 +74,6 @@ ls -l ~/.nextflow/assets/HowieJM/vsn-pipelines
   - useful if using v9 motif DBs and wanting visual reports -> may run with manual patching
 
 
-
-
-### IN PROGRESS - BELOW NOT FIXED CODE
-
-
 ## Acquire motif/track resources (if not already present)
 
 With the the environment and pipeline prepared and the loom filed added to the resources, we can now prepare the further data resources needed to run SCENIC. To do so:
@@ -133,65 +128,12 @@ feather_database=$(basename "${feather_database_url}")
 awk -v feather_database="${feather_database}" '$2 == feather_database' encode_20190621__ChIP_seq_transcription_factor.hg38__refseq-r80__10kb_up_and_down_tss.max.genes_vs_tracks.rankings.feather.sha1sum.txt | sha1sum -c -
 ```
 
-
-
-
-
-
-
-
-## Acquire motif/track resources (if not already present)
-
-With the the environment and pipeline prepared and the loom filed added to the resources, we can now prepare the further data resources needed to run SCENIC. To do so:
-
-
-First, choose a resources directory (default in this repo layout):
-
+# With the resources in place, return to your run directory
 ```bash
-export RESOURCES_DIR="${PWD}/resources/pyscenic_resources"
-mkdir -p "$RESOURCES_DIR" && cd "$RESOURCES_DIR"
-```
-
-Then obtain the following files:
-
-1) TF list (hg38) -> a list of transcription factors for GRN inference via GRNBoost2
-```bash
-wget https://resources.aertslab.org/cistarget/tf_lists/allTFs_hg38.txt
-```
-
-2) Motif rankings database (v10, hg38, ±10 kb) -> per-gene motif enrichment rankings for cisTarget pruning 
-```bash
-FEATHER_DB_URL='https://resources.aertslab.org/cistarget/databases/homo_sapiens/hg38/refseq_r80/mc_v10_clust/gene_based/hg38_10kbp_up_10kbp_down_full_tx_v10_clust.genes_vs_motifs.rankings.feather'
-wget "${FEATHER_DB_URL}"
-```
-
-3) Motif→TF "motif2TF" mapping file (cisTarget v10, hg38) → mapping table linking motifs to TFs (must match v10)
-
-The TF list is used by GRNBoost2 to infer GRNs based on TF-gene coexpression across cells. cisTarget then uses the matched v10 motif ranking statistics database and motif2TF annotation files to prune putative TF network modules, retaining only those whose target genes are enriched for the TF’s cognate motifs within ±10 kb of the TSS. In this repo, we use **cisTarget v10 rankings database with ±10 kb around TSS** (full transcript + matching v10 motif→TF table). Note that Aerts Lab host *alternatives, including:* promoter-centric (**±500 bp**), not used here. 
-
-
-#   Optional checksum
-wget https://resources.aertslab.org/cistarget/databases/homo_sapiens/hg38/refseq_r80/mc_v10_clust/gene_based/hg38_10kbp_up_10kbp_down_full_tx_v10_clust.genes_vs_motifs.rankings.feather.sha1sum.txt
-feather_database='hg38_10kbp_up_10kbp_down_full_tx_v10_clust.genes_vs_motifs.rankings.feather'
-awk -v feather_database="${feather_database}" '$2==feather_database' hg38_10kbp_up_10kbp_down_full_tx_v10_clust.genes_vs_motifs.rankings.feather.sha1sum.txt | sha1sum -c -
-
-# 3) Motif→TF mapping (v10)
-wget https://resources.aertslab.org/cistarget/motif2tf/motifs-v10nr_clust-nr.hgnc-m0.001-o0.0.tbl
-
-# 4) (Optional) ENCODE track rankings & mapping (only if using track pruning)
-TRACK_DB_URL='https://resources.aertslab.org/cistarget/databases/homo_sapiens/hg38/refseq_r80/tc_v1/gene_based/encode_20190621__ChIP_seq_transcription_factor.hg38__refseq-r80__10kb_up_and_down_tss.max.genes_vs_tracks.rankings.feather'
-wget "${TRACK_DB_URL}"
-
-wget https://resources.aertslab.org/cistarget/databases/homo_sapiens/hg38/refseq_r80/tc_v1/gene_based/encode_20190621__ChIP_seq_transcription_factor.hg38__refseq-r80__10kb_up_and_down_tss.max.genes_vs_tracks.rankings.feather.sha1sum.txt
-track_db="$(basename "${TRACK_DB_URL}")"
-awk -v feather_database="${track_db}" '$2==feather_database' encode_20190621__ChIP_seq_transcription_factor.hg38__refseq-r80__10kb_up_and_down_tss.max.genes_vs_tracks.rankings.feather.sha1sum.txt | sha1sum -c -
-
-wget https://resources.aertslab.org/cistarget/track2tf/encode_project_20190621__ChIP-seq_transcription_factor.homo_sapiens.hg38.bigwig_signal_pvalue.track_to_tf_in_motif_to_tf_format.tsv
-
-# Return to your run directory
 cd -
+```
 
-
+### IN PROGRESS - BELOW NOT FIXED CODE
 
 
 
