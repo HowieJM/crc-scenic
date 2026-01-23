@@ -142,7 +142,7 @@ awk -v feather_database="${feather_database}" '$2==feather_database' \
   encode_20190621__ChIP_seq_transcription_factor.hg38__refseq-r80__10kb_up_and_down_tss.max.genes_vs_tracks.rankings.feather.sha1sum.txt | sha1sum -c -
 ```
 
-# With the resources in place, return to your run directory
+**With the resources in place, return to your run directory**
 ```bash
 cd -
 ```
@@ -150,42 +150,32 @@ cd -
 ### IN PROGRESS - BELOW NOT FIXED CODE
 
 
+## Prepare the config file
 
---------------------------------------------------------------------------------
-Get the pipeline (fork vs upstream) and apply tiny patch if needed
---------------------------------------------------------------------------------
-# Nextflow caches pipelines under ~/.nextflow/assets. Pull the pipeline:
-nextflow pull vib-singlecell-nf/vsn-pipelines -r master
-# If you used/need a fork (e.g., restored multirun parallelism), pull that instead:
-# nextflow pull <your-fork-owner>/vsn-pipelines -r master
+**Option A (recommended):** use the committed config 
 
-# (Historical patch) if a ModuleNotFoundError on pyscenic.genesig occurs:
-#   replace pyscenic.genesig with ctxcore.genesig in the pipeline helper.
-#   Only needed for certain snapshots.
-PIPE_DIR="${HOME}/.nextflow/assets/vib-singlecell-nf/vsn-pipelines/src/scenic/bin"
-# or: PIPE_DIR="${HOME}/.nextflow/assets/<your-fork-owner>/vsn-pipelines/src/scenic/bin"
-if [ -d "$PIPE_DIR" ]; then
-  sed -i 's/from pyscenic.genesig import GeneSignature/from ctxcore.genesig import GeneSignature/' "$PIPE_DIR/utils.py" || true
-fi
+```bash
+`config/nf_CPUopt_scenic_multirun_25runs_minGene5.config`
+```
 
---------------------------------------------------------------------------------
-Config (use the committed one, or generate then edit)
---------------------------------------------------------------------------------
-# Option A (recommended): use the repo config you committed/edited
-#   config/nf_CPUopt_scenic_multirun_25runs_minGene5.config
-#   - numRuns = 25
-#   - min_genes_regulon = 5
-#   - min_regulon_gene_occurrence = 5
-#   - rank_threshold = 5000; nes_threshold = 3.0; auc_threshold = 0.05; max_similarity_fdr = 0.001; min_genes = 20
-#   - container = 'aertslab/pyscenic_scanpy:0.12.0_1.9.1'
-#   - skipReports = true
-#   - (optional tracks) comment tracksDb/tracksAnnotation if not used
-#
-# Option B (advanced): draft a config and then edit
-# nextflow config vib-singlecell-nf/vsn-pipelines \
-#   -profile scenic,scenic_multiruns,scenic_use_cistarget_motifs,scenic_use_cistarget_tracks,hg38,singularity \
-#   > nf_draft.config
-# # then edit fields as above (container, numRuns, resources paths, skips, etc.)
+Required fields already set:
+```bash
+- `numRuns = 25`
+- `min_genes_regulon = 5`, `min_regulon_gene_occurrence = 5`
+- `rank_threshold = 5000`, `nes_threshold = 3.0`, `auc_threshold = 0.05`, `max_similarity_fdr = 0.001`, `min_genes = 20`
+- `container = 'aertslab/pyscenic_scanpy:0.12.0_1.9.1'`
+- `skipReports = true`
+- *(tracks optional)* keep `tracksDb` / `tracksAnnotation` **commented** unless using tracks
+```
+
+**Option B (advanced):** draft then edit
+```bash
+nextflow config HowieJM/vsn-pipelines \
+  -profile scenic,scenic_multiruns,scenic_use_cistarget_motifs,scenic_use_cistarget_tracks,hg38,singularity \
+  > nf_draft.config
+```
+If using option B, set he same fields as Option A (container, numRuns, resource paths, skips, etc.)
+
 
 --------------------------------------------------------------------------------
 Run pySCENIC multirun
