@@ -171,7 +171,7 @@ nextflow config HowieJM/vsn-pipelines \
   -profile scenic,scenic_multiruns,scenic_use_cistarget_motifs,scenic_use_cistarget_tracks,hg38,singularity \
   > nf_draft.config
 ```
-If using option B, set he same fields as Option A (container, numRuns, resource paths, skips, etc.)
+If using option B, set the same fields as Option A (container, numRuns, resource paths, skips, etc.)
 
 ### IN PROGRESS - BELOW NOT FIXED CODE
 
