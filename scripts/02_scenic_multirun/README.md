@@ -44,17 +44,34 @@ singularity --version     # expect 3.8.6 (or site-equivalent)
 nextflow -version         # expect 21.04.3 -> this is **crucial**
 ```
 
-5) (Optional) run long jobs in tmux
+5) Session manager (optional, but can be wise)
 ```bash
 tmux new-session -s VSN_pySCENIC   # later: tmux attach -t VSN_pySCENIC
 ```
 
-6) Locale (some clusters require C for reproducibility)
+6) Locale (some clusters require this)
 ```bash
 export LANG=C
 export LC_ALL=C
 ```
 
+---
+
+7) Pull the VSN pipeline (**use HowieJM fork or equivalent by default**) 
+
+```bash
+nextflow pull HowieJM/vsn-pipelines -r master
+ls -l ~/.nextflow/assets/HowieJM/vsn-pipelines
+```
+**VSN-pipelines upstream is not maintained, so this fork allows:**
+- up-to-date **cisTarget v10** motif databases
+- multirun **parallel** mode works
+- but, skips visula reports by default (`skipReports = true`) to avoid broken reports 
+
+**Alternative (not recommended)**
+  - upstream: `vib-singlecell-nf/vsn-pipelines` (last maintained before these fixes)
+  - works with **older** motif DBs only
+  - useful if using v9 motif DBs and wanting visual reports -> may run with patching
 
 
 
