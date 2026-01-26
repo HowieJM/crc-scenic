@@ -77,6 +77,65 @@ library(Matrix)      # for rowMeans on dgCMatrix
 # library(enrichplot); library(GOSemSim); library(readr)
 
 
+#~~~~~~~~~~~~~~~~~~~~~
+## Integrate Data Sets
+                 
+# Either run the below sections, or skip to the analysis step, and load the pre-build so, with binarised regulon activity matrix
+
+
+#~~~~~~~~~~~~~~~~~~~~~
+## Inspect SCENIC Data - optional quick checks: VSN-pySCENIC MultiRun Loom 
+
+# Read SCENIC out loom
+loom_file <- H5File$new(SCENIC_LOOM, mode = "r")
+                 
+# Minimal non-interactive checks ->
+
+# Loom spec version
+loom_spec <- loom_file[["attrs/LOOM_SPEC_VERSION"]][]
+message("LOOM_SPEC_VERSION: ", loom_spec)  # expect 3.0.0
+
+# Gene-Cell matrix size
+genes <- nrow(loom_file[["matrix"]][] ) 
+cells <- ncol(loom_file[["matrix"]][] )
+message("Genes × Cells: ", genes, " × ", cells)  # expect 24719 genes, 24,044 cells
+
+# Number of stable aggregated regulons (AUC; ≥80% of runs)    
+n_regs <- ncol(loom_file[["col_attrs/MotifRegulonsAUC"]][])
+message("Stable Regulons (AUC; ≥80% of runs): ", n_regs)  #expect 288 regulons 
+
+
+# Additional deeper checks (unhash if desired):
+#loom_file$ls(recursive = TRUE)
+#loom_file[["layers"]]
+
+#loom_file[["col_attrs"]] #cell metadata
+#loom_file[["row_attrs"]] #gene metadata
+
+#loom_file[["col_attrs/CellID"]]                         
+#loom_file[["row_attrs/Gene"]]                           
+#loom_file[["col_attrs/MotifRegulonsAUC"]]   
+#loom_file[["row_attrs/MotifRegulonGeneOccurrences"]]   
+
+#loom_file[["row_attrs/MotifRegulonGeneWeights"]]
+#loom_file[["row_attrs/MotifRegulons"]]
+
+#loom_file[["matrix"]] #expression matrix
+
+#ncol(head(loom_file[["col_attrs/MotifRegulonsAUC"]][])) # number of regulons
+#ncol(head(loom_file[["row_attrs/MotifRegulonGeneOccurrences"]][])) # number of regulons
+
+                 
+# Close the Loom file
+loom_file$close_all()
+
+
+
+
+
+
+
+
 
 
 
