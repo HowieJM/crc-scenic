@@ -23,12 +23,14 @@
 
 #~~~~~~~~~~~~~~~~~~~~
 # Prepare Environment
-
-out_folder <- file.path("outputs", "20241105_PrepFilteredscRNA_for_PyScenic_to_save_seurat_RDS")
-dir.create(out_folder, recursive = TRUE, showWarnings = FALSE) #for plots
+out_folder <- file.path("outputs", "01_loom_prep") #for plots
+dir.create(out_folder, recursive = TRUE, showWarnings = FALSE)
 
 resources_dir <- Sys.getenv("RESOURCES_DIR", unset = file.path("resources", "pyscenic_resources"))
 dir.create(resources_dir, recursive = TRUE, showWarnings = FALSE) #for loom, to use in SCENIC
+
+# Provenance (original run folder used during development):
+# "outputs/20241105_PrepFilteredscRNA_for_PyScenic_to_save_seurat_RDS"
 
 set.seed(1414)
 
