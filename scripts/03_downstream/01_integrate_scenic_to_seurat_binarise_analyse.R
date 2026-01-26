@@ -48,10 +48,22 @@ set.seed(1414)
 #remotes::install_github("aertslab/SCENIC")
 #BiocManager::install("AUCell")
 
-# Packages
+# Packages ---
+library(Seurat)      # 4.4.0
+library(tidyverse)
+library(data.table)
+library(hdf5r)
+library(SCopeLoomR)
+library(SCENIC)
+library(patchwork)
+library(reshape2)
+library(dplyr); library(stringr); library(tibble)
+library(Matrix)      # for rowMeans on dgCMatrix
 
-
-
+                 
+# ORA (loaded later when needed)
+# library(clusterProfiler); library(org.Hs.eg.db); library(ReactomePA); library(msigdbr)
+# library(enrichplot); library(GOSemSim); library(readr)
 
 
 
