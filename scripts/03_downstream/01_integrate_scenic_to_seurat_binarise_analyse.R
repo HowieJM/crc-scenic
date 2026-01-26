@@ -142,7 +142,13 @@ loom_file$close_all()
      
 so <- readRDS(TAS_SEURAT_RDS)
 str(so) 
-
+                 
+# Ensure baseline default assay is RNA
+if (!"RNA" %in% names(so@assays)) {
+  stop("Assay 'RNA' not found in Seurat object. Available: ",
+       paste(names(so@assays), collapse = ", "))
+}
+DefaultAssay(so) <- "RNA"
                  
 ## Optional: external TAS annotation CSV (Magdalena’s updated labels, if not already added)
 ANNO_CSV <- Sys.getenv("TAS_ANNOT_CSV", unset = "data/Stroma_Annotation_Seurat.csv")
@@ -167,6 +173,73 @@ str(so) # updated TAS annotations added to the pre-SCENIC filtered Seurat object
 
 ##
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~          
+## Integrate SCENIC outputs into Seurat (add motif-based regulon information)
+
+# Open loom using SCopeLoomR
+loom <- open_loom(SCENIC_LOOM, mode = "r")
+
+# Extract regulon incidence matrix (MotifRegulons in row_attrs; which genes per regulon), and export for record
+regulonsMat <- SCopeLoomR::get_regulons(loom, column.attr.name = "MotifRegulons")
+write.csv(regulonsMat, file = file.path(out_folder, "pySCENIC_regulons_incidence_matrix.csv"), 
+         row.names = TRUE)
+message("Wrote regulon incidence: ", file.path(out_folder, "pySCENIC_regulons_incidence_matrix.csv"))
+
+# Convert incidence to gene list, and export for record -> list of genes per regulon 
+regulons <- SCENIC::regulonsToGeneLists(regulonsMat)
+saveRDS(regulons, file = file.path(out_folder, "pySCENIC_regulons_list.rds"))
+sink(file.path(out_folder, "pySCENIC_regulons_list.txt"))
+for (regulon in names(regulons)) {
+  cat("Regulon:", regulon, "\nGenes:", paste(regulons[[regulon]], collapse = ", "), "\n\n")
+}
+sink() # save list
+message("Wrote regulon lists (RDS + TXT) to: ", out_folder)
+
+# Extract regulon activity (AUC) per cell
+regulonAUC <- SCopeLoomR::get_regulons_AUC(loom, column.attr.name = "MotifRegulonsAUC",
+                                           rows = "regulons", columns = "cells")
+AUCmat <- AUCell::getAUC(regulonAUC) # take AUC activvity matrix in plain numeric form 
+
+# Add continuous AUC assay to Seurat
+so[['pyscenicAUC']] <- CreateAssayObject(data = AUCmat)  # regulon activity is now added
+stopifnot(identical(rownames(AUCmat), rownames(so[["pyscenicAUC"]]))) # quick check
+str(so)
+         
+# Extract thresholds for binarisation (note: list can include candidate, non-aggregated regulons)
+regulonAucThresholds <- SCopeLoomR::get_regulon_thresholds(loom, only.selected = TRUE)
+thresholds_df <- data.frame(Regulon = names(regulonAucThresholds),
+                            Threshold = unlist(regulonAucThresholds))
+write.csv(thresholds_df, file = file.path(out_folder, "regulonAUC_thresholds.csv"),
+          row.names = FALSE)
+
+# Binarise AUC by regulon-specific thresholds 
+thresh_values <- as.numeric(names(regulonAucThresholds))
+names(thresh_values) <- regulonAucThresholds
+common_regulons <- intersect(rownames(AUCmat), names(thresh_values))  # expect aggregated set (e.g. 288)
+AUCbin <- 1 * sweep(AUCmat, 1, thresh_values[common_regulons], FUN = ">") # binarise by row (aka by regulon)
+so[["pyscenicAUC_bin"]] <- CreateAssayObject(data = AUCbin) # add to Seurat, expect dim 288, 24,044, proceed
+
+# We now have a continous measure of regulon activity, and a binary "active" or "inactive" state per cell
+
+
+
+                 ## dev in progress .. 
+# Add SCENIC embeddings
+embeddings <- get_embeddings(loom)  # UMAP and tSNE based on AUC
+umap_matrix <- embeddings[["SCENIC AUC UMAP"]]; colnames(umap_matrix) <- c("UMAP_1","UMAP_2")
+so[["SCENIC_UMAP"]]  <- CreateDimReducObject(embeddings = umap_matrix, key = "SCENICUMAP_",  assay = "pyscenicAUC")
+tsne_matrix <- embeddings[["SCENIC AUC t-SNE"]]; colnames(tsne_matrix) <- c("tSNE_1","tSNE_2")
+so[["SCENIC_tSNE"]]  <- CreateDimReducObject(embeddings = tsne_matrix, key = "SCENICtSNE_", assay = "pyscenicAUC")
+
+# Save integrated Seurat
+saveRDS(so, file = file.path(out_folder,
+  "DATA_Joanito_Stroma-only_filtered_for_SCENIC_input_withBinarizedRegulonActivity_and_Regulon_UMAP_tSNE.rds"))
+
+# Close loom
+close_loom(loom)
+
+
+                 
                  
                  
 
