@@ -40,6 +40,18 @@ set.seed(1414)
 #~~~~~~~~~~~~~~
 # Load Packages
 
+# Non-standard install
+#install.packages("remotes")
+#remotes::install_github("aertslab/SCopeLoomR")
+#BiocManager::install("RcisTarget") #in R 4.4.0+, or fails SCENIC
+#install.packages("xml2")
+#remotes::install_github("aertslab/SCENIC")
+#BiocManager::install("AUCell")
+
+# Packages
+
+
+
 
 
 
