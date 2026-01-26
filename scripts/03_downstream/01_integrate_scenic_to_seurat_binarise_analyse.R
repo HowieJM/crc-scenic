@@ -18,5 +18,30 @@
 #   - 'SCENIC_UMAP' and 'SCENIC_tSNE' DimReducs
 #   - CSVs: regulon incidence, thresholds, lists
 #   - Plots/logs under outputs/03_downstream/
+#
+# Tested in: RStudio v 2023.09.0  # R v 4.4.0 / 4.4.2, and
+#            RStudio v 2024.04.1  # R v 4.4.0
 # ======================================================================================
+
+
+
+#~~~~~~~~~~~~~~~~~~~~
+# Prepare Environment
+
+out_folder  <- file.path("outputs", "03_downstream")
+plot_folder <- file.path(out_folder, "plots")
+dirs <- c(out_folder, plot_folder)
+invisible(lapply(dirs, function(d) if (!dir.exists(d)) dir.create(d, recursive = TRUE, showWarnings = FALSE)))
+
+set.seed(1414)
+
+
+                 
+#~~~~~~~~~~~~~~
+# Load Packages
+
+
+
+
+
 
