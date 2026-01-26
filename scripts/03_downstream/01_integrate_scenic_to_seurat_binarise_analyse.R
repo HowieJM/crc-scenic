@@ -131,10 +131,23 @@ loom_file$close_all()
 
 
 
+#~~~~~~~~~~~~~~~~~~
+## Load Seurat data
 
+# TAS Seurat -> Data provenance (summary, see scripts/01_loom_prep/README.md for full):
 
+# - scRNA-seq: Joanito et al., Nat Genet 2022 (CRC; 10x Genomics; GRCh38)
+# - TAS subset: >20 stromal cells per patient, all cohorts (M. Frank re-annotated TAS Seurat)
+# - filtered for SCENIC (J. M. Howie, see scripts/01_loom_prep/01_tas_seurat_filtered_to_scenic_loom.R)
+     
+so <- readRDS(TAS_SEURAT_RDS)
+str(so) 
+                 
+                 
 
-
+                 
+                 
+                 
 
 
 
