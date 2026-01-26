@@ -27,4 +27,4 @@
 ## Main scRNA CRC-TAS Loom File Provenance:
 - **Raw scRNA-seq**: Joanito et al. (Nat Genet 2022), Synapse **syn26844071** (raw scRNA CRC) 
 - **TAS subset**: stromal re-annotation & selection by M. Frank (8 TAS classes, TAS-only CRC Seurat file)  
-- **SCENIC pre-filtering + loom**: performed by J. Howie; scripts in `scripts/prefiltering/` (Seurat → loom file).
+- **SCENIC pre-filtering + loom**: performed by J. Howie; scripts in `scripts/01_loom_prep/` (Seurat → loom file).
