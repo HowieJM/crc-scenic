@@ -204,7 +204,9 @@ AUCmat <- AUCell::getAUC(regulonAUC) # take AUC activvity matrix in plain numeri
 so[['pyscenicAUC']] <- CreateAssayObject(data = AUCmat)  # regulon activity is now added
 stopifnot(identical(rownames(AUCmat), rownames(so[["pyscenicAUC"]]))) # quick check
 str(so)
-         
+
+     ## dev in progress .. 
+                 
 # Extract thresholds for binarisation (note: list can include candidate, non-aggregated regulons)
 regulonAucThresholds <- SCopeLoomR::get_regulon_thresholds(loom, only.selected = TRUE)
 thresholds_df <- data.frame(Regulon = names(regulonAucThresholds),
@@ -223,7 +225,7 @@ so[["pyscenicAUC_bin"]] <- CreateAssayObject(data = AUCbin) # add to Seurat, exp
 
 
 
-                 ## dev in progress .. 
+            
 # Add SCENIC embeddings
 embeddings <- get_embeddings(loom)  # UMAP and tSNE based on AUC
 umap_matrix <- embeddings[["SCENIC AUC UMAP"]]; colnames(umap_matrix) <- c("UMAP_1","UMAP_2")
