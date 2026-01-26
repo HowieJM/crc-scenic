@@ -21,12 +21,12 @@ Rscript scripts/01_loom_prep/01_tas_seurat_filtered_to_scenic_loom.R
 ```
 
 ## Optional checks
-# print LOOM_SPEC_VERSION
+### print LOOM_SPEC_VERSION
 ```bash
 python scripts/01_loom_prep/02_check_loom_all.py --version resources/pyscenic_resources/Joanito_StromaOnly_Filtered_Seurat_Object_All_Cohorts_FullDataSet_SCopeLoomR.loom
 ```
 
-# list global attributes
+### list global attributes
 ```bash
 python scripts/01_loom_prep/02_check_loom_all.py --attrs   resources/pyscenic_resources/Joanito_StromaOnly_Filtered_Seurat_Object_All_Cohorts_FullDataSet_SCopeLoomR.loom
 ```
