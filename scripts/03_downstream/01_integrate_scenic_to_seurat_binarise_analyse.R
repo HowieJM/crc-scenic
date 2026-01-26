@@ -142,10 +142,31 @@ loom_file$close_all()
      
 so <- readRDS(TAS_SEURAT_RDS)
 str(so) 
-                 
-                 
 
                  
+## Optional: external TAS annotation CSV (Magdalena’s updated labels, if not already added)
+ANNO_CSV <- Sys.getenv("TAS_ANNOT_CSV", unset = "data/Stroma_Annotation_Seurat.csv")
+anno <- read.csv(ANNO_CSV, header = TRUE)
+str(anno) # these annotations applied to the entire pre-SCENIC filtered Seurat object
+
+# Retain only cells present in the pre-SCENIC filtered Seurat object
+seurat_cells  <- so@meta.data$cell.ID
+filtered_anno <- anno[anno$cell.ID %in% seurat_cells, ]
+cat("Number of matching cells:", nrow(filtered_anno), "\n")  # expect 24044
+             
+# Add updated annotations to Seurat metadata
+rownames(filtered_anno) <- filtered_anno$cell.ID
+filtered_anno <- filtered_anno[, -1]  # drop cell.ID column
+colnames(filtered_anno) <- c("seurat_clusters_New", "Subcluster_New")  # so we don't lose track
+so <- AddMetaData(so, metadata = filtered_anno)
+head(so@meta.data[, c("seurat_clusters_New", "Subcluster_New")])
+
+# Final safety check: same cell order
+stopifnot(isTRUE(all.equal(rownames(filtered_anno), so@meta.data$cell.ID)))
+str(so) # updated TAS annotations added to the pre-SCENIC filtered Seurat object
+
+##
+
                  
                  
 
