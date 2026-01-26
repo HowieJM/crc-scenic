@@ -7,6 +7,8 @@
 #   Read the aggregated SCENIC loom (multirun), add the AUC assays & SCENIC embeddings
 #   to the initial TAS Seurat object, and create a binarised regulon-activity matrix.
 #
+#   Then, run downstream analysis of regulon activity (RSS) and pathway (ORA) analysis
+#
 # Inputs
 #   - Aggregated SCENIC loom (step 02 output; 
 #                   e.g. outputs/02_scenic_multirun/<RUN_TAG>/out/scenic/...SCENIC.loom)
@@ -35,7 +37,16 @@ invisible(lapply(dirs, function(d) if (!dir.exists(d)) dir.create(d, recursive =
 
 set.seed(1414)
 
-
+# Optional: override via env vars without editing the script
+SCENIC_LOOM   <- Sys.getenv(
+  "SCENIC_LOOM",
+  unset = "outputs/02_scenic_multirun/<RUN_TAG>/out/scenic/<project>__25Runs__YYYY_MM_DD/data/<project>__25Runs__YYYY_MM_DD.SCENIC.loom"
+)
+TAS_SEURAT_RDS <- Sys.getenv(
+  "TAS_SEURAT_RDS",
+  unset = "data/TAS_seurat.rds"   # not bundled; set to your TAS Seurat path
+)
+                 
                  
 #~~~~~~~~~~~~~~
 # Load Packages
