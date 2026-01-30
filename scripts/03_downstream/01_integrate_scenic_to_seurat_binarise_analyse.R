@@ -204,30 +204,45 @@ AUCmat <- AUCell::getAUC(regulonAUC) # take AUC activvity matrix in plain numeri
 so[['pyscenicAUC']] <- CreateAssayObject(data = AUCmat)  # regulon activity is now added
 stopifnot(identical(rownames(AUCmat), rownames(so[["pyscenicAUC"]]))) # quick check
 str(so)
-
-     ## dev in progress .. 
                  
-# Extract thresholds for binarisation (note: list can include candidate, non-aggregated regulons)
-regulonAucThresholds <- SCopeLoomR::get_regulon_thresholds(loom, only.selected = TRUE)
+# Extract thresholds for binarisation: # Note -> the list include candidate, non-aggregated regulons
+regulonAucThresholds <- SCopeLoomR::get_regulon_thresholds(loom, only.selected = TRUE)                
+# Also note: in this loom the vector is inverted (names = thresholds, values = regulon IDs); so ->
 
-# Note: in this loom the vector is inverted (names = thresholds, values = regulon IDs); swap for CSV
-thresholds_df <- data.frame(
-  Regulon   = unlist(regulonAucThresholds),     # values = regulon IDs
-  Threshold = as.numeric(names(regulonAucThresholds))  # names = thresholds (coerce to numeric)
+# Re-build as a named numeric vector: names = regulon, values = threshold
+thr_vec <- setNames(
+  as.numeric(names(regulonAucThresholds)),          # thresholds (numeric)
+  as.character(unlist(regulonAucThresholds))        # regulon IDs (character)
 )
-write.csv(thresholds_df, file = file.path(out_folder, "regulonAUC_thresholds.csv"),
+
+# Export CSV in the natural column order
+thresholds_df <- data.frame(
+  Regulon   = names(thr_vec),
+  Threshold = as.numeric(thr_vec),
+  row.names = NULL
+)
+write.csv(thresholds_df,
+          file = file.path(out_folder, "regulonAUC_thresholds.csv"),
           row.names = FALSE)
+                 
 
-# Binarise AUC by regulon-specific thresholds 
-thresh_values <- as.numeric(names(regulonAucThresholds))
-names(thresh_values) <- regulonAucThresholds
-common_regulons <- intersect(rownames(AUCmat), names(thresh_values))  # expect aggregated set (e.g. 288)
-AUCbin <- 1 * sweep(AUCmat, 1, thresh_values[common_regulons], FUN = ">") # binarise by row (aka by regulon)
-so[["pyscenicAUC_bin"]] <- CreateAssayObject(data = AUCbin) # add to Seurat, expect dim 288, 24,044, proceed
+# Binarise the Activity Matrix:
 
-# We now have a continous measure of regulon activity, and a binary "active" or "inactive" state per cell
+# use regulon activity matrix
+str(AUCmat)  # row = regulons, col = cells
 
+# use regulon activity thresholds, in required format (names = regulon, values = cutoff)
+common_regulons <- intersect(rownames(AUCmat), names(thr_vec))  # expect aggregated set (e.g. 288)
+AUCbin <- 1L * sweep(AUCmat[common_regulons, , drop = FALSE], 1, thr_vec[common_regulons], FUN = ">")  # binarise by row (aka by regulon)
 
+# add binarised assay
+so[["pyscenicAUC_bin"]] <- CreateAssayObject(data = AUCbin)
+dim(so[["pyscenicAUC_bin"]])  # expect 288 24044, proceed
+
+# We now have a continuous measure of regulon activity, and a binary "active" or "inactive" state per cell              
+          
+
+                      ## dev in progress .. 
 
             
 # Add SCENIC embeddings
