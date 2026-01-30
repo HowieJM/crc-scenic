@@ -70,6 +70,7 @@ library(patchwork)
 library(reshape2)
 library(dplyr); library(stringr); library(tibble)
 library(Matrix)      # for rowMeans on dgCMatrix
+library(ggtext)
 
                  
 # ORA (loaded later when needed)
@@ -439,7 +440,7 @@ message("Wrote: ", fn)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## RSS – regulon specificity (continuous AUC)
 
-# The above analysis uses FindAllMarkers (enriched, not unique). 
+# The above analysis uses FindAllMarkers (enriched, not unique);
 # Now, we use RSS to assess specificity across TAS.
 
 # Check alignment
@@ -454,7 +455,7 @@ rss_res <- calcRSS(
 str(rss_res)
 
                  
-## Plot RSS across TAS
+# Plot RSS across TAS 
 
 # First, [S.I.] for all regulons × all TAS (no filtering)
 rssPlot_all <- plotRSS(
@@ -511,46 +512,93 @@ ggsave(file.path(plot_folder, "9B-RSS_zThres2.5_Top_MyTAS1_forced.png"),
        p_pub, width = 6, height = 8, dpi = 300)
 
                  # below under dev
-                 
-# Optional “coloured owner” labels (TAS colour per regulon label) — nicer, but not essential
-# (relies on previous rssNorm_all, rows_show, rowOrder)
+
+# Third, [optional] (prettier) 9B variant: TAS Y, regulon X
+# TAS labels colour blocked; 
+# regulon names coloured by their “owner” TAS (max z; myTAS1 forced);
+
+# Set TAS colours
 tas_cols <- c(
   "myTAS1"="#0589B6","myTAS2"="#B6D1DA","myTAS3"="#094E95",
   "mscTAS"="#F49A16","iTAS1" ="#8F1B1D","iTAS2" ="#EA5A5D",
   "apTAS" ="#8C3459","pTAS"  ="#A19217"
 )
 
-library(ggtext)
+# Base dot-heatmap with regulons on X, TAS on Y
+p_rev <- SCENIC:::dotHeatmap(
+  rss_df,
+  var.x    = "Topic",     # regulons on X
+  var.y    = "cellType",  # TAS on Y
+  var.size = "RSS",       min.size = 0.5, max.size = 5,
+  var.col  = "Z",
+  col.low  = "grey90",
+  col.mid  = "darkolivegreen3",
+  col.high = "darkgreen"
+)
 
-# map stripped↔full names of regulons
-full_map <- setNames(rows_show, sub("-\\(\\+\\)-motif$", "", rows_show))
-full_map <- full_map[levels(rss_df$Topic)]
-
-# “owner” TAS by max z-score (keep myTAS1 for forced)
+# --- owner-coloured X labels (regulon names) ---
+x_full     <- levels(rss_df$Topic)                          # full regulon names
+x_stripped <- sub("-\\(\\+\\)-motif$", "", x_full)          # display-only
 keeper_force <- c("BACH2-(+)-motif","ZBED1-(+)-motif","HMGA2-(+)-motif","LEF1-(+)-motif")
-reg2tas <- vapply(levels(rss_df$Topic), function(lbl){
-  full <- full_map[[lbl]]
+
+stopifnot(all(x_full %in% rownames(rssNorm_all)))           # guard: rows exist in z-matrix
+reg2tas_x <- vapply(x_full, function(full){
   if (full %in% keeper_force) return("myTAS1")
   zs <- rssNorm_all[full, ]
   names(zs)[which.max(zs)]
 }, character(1))
 
-x_labs_col <- sprintf("<span style='color:%s'>%s</span>",
-                      tas_cols[reg2tas], levels(rss_df$Topic))
+# ensure tas_cols order matches TAS order in the plot
+tas_cols_use <- tas_cols[levels(rss_df$cellType)]
+x_labs_col   <- sprintf("<span style='color:%s'>%s</span>",
+                        tas_cols[reg2tas_x], x_stripped)
 
-p_pub_colour <- p_pub +
-  scale_y_discrete(labels = levels(rss_df$Topic)) +  # keep y text for colour labels on x
-  theme(axis.text.x = element_markdown(angle = 45, hjust = 1, size = 14))
-# Rebuild with coloured x labels:
-p_pub_colour <- p_pub_colour + scale_x_discrete(labels = levels(rss_df$cellType))
-p_pub_colour <- p_pub + scale_x_discrete(labels = levels(rss_df$cellType)) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 14))
+p_rev_col <- p_rev +
+  scale_x_discrete(labels = x_labs_col) +
+  theme(
+    axis.text.x = ggtext::element_markdown(angle = 45, hjust = 1, size = 14),
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    plot.margin  = margin(l = 2)
+  )
 
-# If you want the “owner-coloured” x labels, swap in element_markdown:
-# theme(axis.text.x = element_markdown(angle = 45, hjust = 1, size = 14))
+# --- TAS label text & coloured strip on the left ---
+ylab_df <- data.frame(
+  cellType = factor(levels(rss_df$cellType), levels = levels(rss_df$cellType)),
+  x = 1
+)
 
-ggsave(file.path(plot_folder, "9B-RSS_zThres2.5_Top_MyTAS1_forced_with_col.png"),
-       p_pub, width = 10, height = 5, dpi = 300)
+ylab_text <- ggplot(ylab_df, aes(x = 1, y = cellType, label = cellType)) +
+  geom_text(hjust = 0.5, size = 4.5) +
+  scale_x_continuous(expand = c(0, 0)) +
+  theme_void() +
+  theme(plot.margin = margin(r = 2))
+
+ylab_strip <- ggplot(ylab_df, aes(x = 1, y = cellType, fill = cellType)) +
+  geom_tile(width = 0.5, height = 0.9) +
+  scale_fill_manual(values = tas_cols_use, guide = "none") +
+  scale_x_continuous(expand = c(0, 0)) +
+  theme_void() +
+  theme(plot.margin = margin(r = 0))
+
+# Compose:  text | strip | dot-plot
+p_final <- ylab_text + ylab_strip + p_rev_col +
+  patchwork::plot_layout(widths = c(0.12, 0.02, 1))
+
+ggsave(file.path(plot_folder, "9B-RSS_zThres2.5_Top_colouredByZowner.png"),
+       p_final, width = 10, height = 5, dpi = 300)
+
+
+
+                 # below under dev
+
+
+
+
+
+
+
+                 
 
 # 10 — export top regulons’ gene sets (as defined by rows_show)
 regs_subset <- regulons[ intersect(names(regulons), rows_show) ]
