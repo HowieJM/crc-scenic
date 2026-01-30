@@ -432,8 +432,174 @@ for (rg in names(regList)) {
 close(con)
 message("Wrote: ", fn)
 
-#
+                 
+# below under dev
 
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## RSS – regulon specificity (continuous AUC)
+
+# The above analysis uses FindAllMarkers (enriched, not unique). 
+# Now, we use RSS to assess specificity across TAS.
+
+# Check alignment
+stopifnot(isTRUE(all.equal(names(so$Subcluster_New), colnames(so[["pyscenicAUC"]]))))
+
+# calculate RSS (regulon × TAS)
+rss_res <- calcRSS(
+  AUC            = as.matrix(GetAssayData(so[["pyscenicAUC"]], slot = "data")),
+  cellAnnotation = so$Subcluster_New,
+  cellTypes      = levels(so$Subcluster_New)
+)
+str(rss_res)
+
+# 9A — SI: all regulons × all TAS (no filtering)
+rssPlot_all <- plotRSS(
+  rss_res,
+  zThreshold      = -Inf,   # keep everything
+  thr             = -Inf,   # do NOT discard on raw RSS
+  cluster_columns = TRUE,
+  order_rows      = TRUE
+)
+ggsave(filename = file.path(plot_folder, "9A-RSS_full_288x8.png"),
+       plot     = rssPlot_all$plot, width = 10, height = 32, dpi = 300)
+
+# 9B — MS: top RSS regulons with z ≥ 2.5 plus forced myTAS1 regulons
+# full-matrix z-score (row-wise within each TAS)
+rssNorm_all <- scale(rss_res)                   # 288 × 8
+rssNorm_all[rssNorm_all < 0] <- 0               # keep positive part only
+
+# rows to display (z-threshold + force-include myTAS1)
+keep_vec  <- c("BACH2-(+)-motif", "ZBED1-(+)-motif", "HMGA2-(+)-motif", "LEF1-(+)-motif")
+auto_rows <- rownames(rss_res)[ rowSums(rssNorm_all >= 2.5) > 0 ]
+rows_show <- union(keep_vec, auto_rows)
+
+# build dot-heatmap data-frame (raw RSS size; z colour)
+rss_sub <- rss_res     [rows_show, , drop = FALSE]
+z_sub   <- rssNorm_all [rows_show, , drop = FALSE]
+
+df_raw <- reshape2::melt(rss_sub); colnames(df_raw) <- c("Topic","cellType","RSS")
+df_z   <- reshape2::melt(z_sub  ); colnames(df_z)   <- c("Topic","cellType","Z")
+rss_df <- merge(df_raw, df_z)
+
+# keep same row order as plotRSS() would give
+rowOrder <- rev(
+  SCENIC:::.plotRSS_heatmap(z_sub, thr = -Inf,
+                            cluster_columns = FALSE,
+                            order_rows      = TRUE,
+                            verbose = FALSE)@row_names_param$labels)
+rss_df$Topic <- factor(rss_df$Topic, levels = rowOrder)
+
+# publication axis orientation: TAS on X, regulons on Y
+p_pub <- SCENIC:::dotHeatmap(
+  rss_df,
+  var.x   = "cellType",   # TAS along x
+  var.y   = "Topic",      # regulons along y
+  var.size= "RSS",        min.size = 0.5, max.size = 5,
+  var.col = "Z",
+  col.low = "grey90",
+  col.mid = "darkolivegreen3",
+  col.high= "darkgreen"
+) +
+  theme(axis.text.y = element_text(size = 14),
+        axis.text.x = element_text(size = 14, angle = 45, hjust = 1))
+
+ggsave(file.path(plot_folder, "9B-RSS_zThres2.5_Top_MyTAS1_forced.png"),
+       p_pub, width = 6, height = 8, dpi = 300)
+
+# Optional “coloured owner” labels (TAS colour per regulon label) — nicer, but not essential
+# (relies on previous rssNorm_all, rows_show, rowOrder)
+tas_cols <- c(
+  "myTAS1"="#0589B6","myTAS2"="#B6D1DA","myTAS3"="#094E95",
+  "mscTAS"="#F49A16","iTAS1" ="#8F1B1D","iTAS2" ="#EA5A5D",
+  "apTAS" ="#8C3459","pTAS"  ="#A19217"
+)
+
+library(ggtext)
+
+# map stripped↔full names of regulons
+full_map <- setNames(rows_show, sub("-\\(\\+\\)-motif$", "", rows_show))
+full_map <- full_map[levels(rss_df$Topic)]
+
+# “owner” TAS by max z-score (keep myTAS1 for forced)
+keeper_force <- c("BACH2-(+)-motif","ZBED1-(+)-motif","HMGA2-(+)-motif","LEF1-(+)-motif")
+reg2tas <- vapply(levels(rss_df$Topic), function(lbl){
+  full <- full_map[[lbl]]
+  if (full %in% keeper_force) return("myTAS1")
+  zs <- rssNorm_all[full, ]
+  names(zs)[which.max(zs)]
+}, character(1))
+
+x_labs_col <- sprintf("<span style='color:%s'>%s</span>",
+                      tas_cols[reg2tas], levels(rss_df$Topic))
+
+p_pub_colour <- p_pub +
+  scale_y_discrete(labels = levels(rss_df$Topic)) +  # keep y text for colour labels on x
+  theme(axis.text.x = element_markdown(angle = 45, hjust = 1, size = 14))
+# Rebuild with coloured x labels:
+p_pub_colour <- p_pub_colour + scale_x_discrete(labels = levels(rss_df$cellType))
+p_pub_colour <- p_pub + scale_x_discrete(labels = levels(rss_df$cellType)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 14))
+
+# If you want the “owner-coloured” x labels, swap in element_markdown:
+# theme(axis.text.x = element_markdown(angle = 45, hjust = 1, size = 14))
+
+ggsave(file.path(plot_folder, "9B-RSS_zThres2.5_Top_MyTAS1_forced_with_col.png"),
+       p_pub, width = 10, height = 5, dpi = 300)
+
+# 10 — export top regulons’ gene sets (as defined by rows_show)
+regs_subset <- regulons[ intersect(names(regulons), rows_show) ]
+sub_txt <- file.path(plot_folder, "10-pySCENIC_regulons_list_RSSz_2.5_myTAS1_inc_subset.txt")
+sink(sub_txt)
+for (rg in names(regs_subset)) {
+  cat("Regulon:", rg, "\nGenes:", paste(regs_subset[[rg]], collapse = ", "), "\n\n")
+}
+sink(); message("Saved: ", sub_txt)
+
+# (NGFR aside removed)
+
+# (Optional) 9C — AUC-coloured dot-heatmap (size=RSS, colour=AUC), if you like to keep it
+# This visualises average AUC per TAS for rows_show in addition to RSS size.
+# DefaultAssay(so) <- "pyscenicAUC"
+# auc_mat    <- GetAssayData(so[["pyscenicAUC"]], slot = "data")
+# cell_order <- colnames(rss_res)
+# avgAUC <- sapply(cell_order, function(ct) rowMeans(auc_mat[rows_show, so$Subcluster_New == ct, drop = FALSE]))
+# colnames(avgAUC) <- cell_order
+# df_auc <- reshape2::melt(avgAUC); colnames(df_auc) <- c("Topic","cellType","AUC")
+# df_rss <- reshape2::melt(rss_sub); colnames(df_rss) <- c("Topic","cellType","RSS")
+# rss_df_auc <- merge(df_rss, df_auc)
+# p_auc <- SCENIC:::dotHeatmap(rss_df_auc, var.x="cellType", var.y="Topic",
+#                              var.size="RSS", var.col="AUC",
+#                              col.low="grey90", col.mid="lightcoral", col.high="red4")
+# ggsave(file.path(plot_folder, "9C-RSS_size_rawAUC_zThres2.5_Top.png"),
+#        p_auc, width = 10, height = 5, dpi = 300)
+
+# 12A/12B — heatmaps for rows_show regulons (raw and scaled AUC)
+rss_feats <- intersect(rows_show, rownames(so[["pyscenicAUC"]]))  # expect ~35
+message(length(rss_feats), " regulons will be plotted.")
+
+# raw AUC
+h_raw <- DoHeatmap(so, features = rss_feats, slot = "data", raster = TRUE,
+                   group.colors = tas_cols) + ggtitle("RSS-selected regulons – raw AUC")
+ggsave(file.path(plot_folder, "12A-Heatmap_RSSselected_rawAUC.png"), h_raw, width = 7, height = 9, dpi = 300)
+
+# scaled AUC
+so <- ScaleData(so, assay = "pyscenicAUC", features = rss_feats, verbose = FALSE)
+row_labs <- sub("-\\(\\+\\)-motif$", "", rss_feats); names(row_labs) <- rss_feats
+h_scaled <- DoHeatmap(so, features = rss_feats, slot = "scale.data", raster = TRUE,
+                      group.colors = tas_cols) +
+  labs(fill = "Scaled AUC (z)") +
+  scale_y_discrete(labels = row_labs) +
+  theme(axis.text.y  = element_text(size = 10),
+        legend.text  = element_text(size = 10),
+        legend.title = element_text(size = 12),
+        legend.position = "right") +
+  guides(colour = "none",
+         fill   = guide_colourbar(barwidth = 0.5, barheight = 7))
+ggsave(file.path(plot_folder, "12B-Heatmap_RSSselected_scaledAUC.png"),
+       h_scaled, width = 12, height = 8, dpi = 300)
+
+# 13/14/14B — lead regulon UMAPs are already above (keep those as-is).
                  
                  
                  
