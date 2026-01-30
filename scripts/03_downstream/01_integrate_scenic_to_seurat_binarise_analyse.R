@@ -198,7 +198,7 @@ message("Wrote regulon lists (RDS + TXT) to: ", out_folder)
 # Extract regulon activity (AUC) per cell
 regulonAUC <- SCopeLoomR::get_regulons_AUC(loom, column.attr.name = "MotifRegulonsAUC",
                                            rows = "regulons", columns = "cells")
-AUCmat <- AUCell::getAUC(regulonAUC) # take AUC activvity matrix in plain numeric form 
+AUCmat <- AUCell::getAUC(regulonAUC) # take AUC activity matrix in plain numeric form 
 
 # Add continuous AUC assay to Seurat
 so[['pyscenicAUC']] <- CreateAssayObject(data = AUCmat)  # regulon activity is now added
@@ -266,15 +266,74 @@ colnames(tsne_matrix) <- c("tSNE_1", "tSNE_2")
 so[["SCENIC_UMAP"]]  <- CreateDimReducObject(embeddings = umap_matrix, key = "SCENICUMAP_",  assay = "pyscenicAUC")
 so[["SCENIC_tSNE"]]  <- CreateDimReducObject(embeddings = tsne_matrix, key = "SCENICtSNE_",   assay = "pyscenicAUC")
 
+# Re-label lsTAS -> to match paper
+so$Subcluster_New[so$Subcluster_New == "lsTAS"] <- "apTAS"
 
-# Save integrated Seurat -> unhash to save, can reinitiate downstream analysis from here
+# Levels
+so$Subcluster_New <- factor(so$Subcluster_New,
+                            levels = c("apTAS",
+                                       "pTAS",
+                                       "iTAS1", "iTAS2", 
+                                       "mscTAS", 
+                                       "myTAS1", "myTAS2", "myTAS3"))
+
+# Save integrated Seurat -> uncomment to save, can reinitiate downstream analysis from here
 # saveRDS(so, file = file.path(out_folder,
 #   "DATA_Joanito_Stroma-only_filtered_for_SCENIC_input_withBinarizedRegulonActivity_and_Regulon_UMAP_tSNE.rds"))
 
 # Close loom
 close_loom(loom)
 
+                 
+#
 
+                 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## Analyse Data -> ID Cell Type Specific Regulons, etc 
+                 
+
+# 1 - Initial Overview: Cell Types on RNA and Regulon Activity UMAPs
+u1 <- DimPlot(so, reduction = "umap",        group.by = "Subcluster_New") + ggtitle("RNA-based UMAP")
+u2 <- DimPlot(so, reduction = "SCENIC_UMAP", group.by = "Subcluster_New") + ggtitle("SCENIC AUC-based UMAP")
+u3 <- DimPlot(so, reduction = "SCENIC_tSNE", group.by = "Subcluster_New") + ggtitle("SCENIC AUC-based t-SNE")
+
+out_F <- file.path(plot_folder, "1-UMAP-CellTypeProjections_RNA_UMAP__SCENIC_UMAP__SCENIC_tSNE.pdf")
+pdf(out_F, width = 18, height = 6)
+plot(u1 + u2 + u3 + plot_layout(ncol = 3, widths = c(1,1,1)))
+dev.off()
+
+# 2 - Identify TAS-specific regulons (continuous AUC) -> FindAllMarkers method
+DefaultAssay(so) <- "pyscenicAUC"
+Idents(so) <- so$Subcluster_New
+
+regulon_markers <- FindAllMarkers(
+  object = so,
+  assay  = "pyscenicAUC",
+  only.pos = TRUE,
+  min.pct = 0.1,
+  logfc.threshold = 0.10
+)
+write_csv(regulon_markers, file.path(plot_folder, "2-RegulonResults_TopPerCellType_FindMarkers_pct_0_1__logfc_0_1.csv"))
+
+# Plot top single regulon activity marker per TAS 
+top1_regulon_markers <- regulon_markers %>%
+  group_by(cluster) %>%
+  slice_max(order_by = avg_log2FC, n = 1, with_ties = FALSE) %>%
+  ungroup()
+print(top1_regulon_markers, n = 8)
+write_csv(top1_regulon_markers, file.path(plot_folder, "2A-Top1_regulon_per_TAS.csv"))
+
+# Optional: quick feature plots of top-1 regulon per TAS on RNA-UMAP
+p_list <- imap(setNames(top1_regulon_markers$gene, top1_regulon_markers$cluster), function(reg, cl){
+  FeaturePlot(so, features = reg, reduction = "umap") + labs(title = paste0(cl, ": ", reg))
+})
+pdf(file.path(plot_folder, "2B-Top1_Regulon_Per_TAS_RNAUMAP.pdf"), width = 12, height = 10)
+print(wrap_plots(p_list, ncol = 3))
+dev.off()
+
+DefaultAssay(so) <- "RNA"   
+
+                 
                  
                  
                  
