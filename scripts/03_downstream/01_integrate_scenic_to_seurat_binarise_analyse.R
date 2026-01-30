@@ -316,6 +316,8 @@ regulon_markers <- FindAllMarkers(
 )
 write_csv(regulon_markers, file.path(plot_folder, "2-RegulonResults_TopPerCellType_FindMarkers_pct_0_1__logfc_0_1.csv"))
 
+DefaultAssay(so) <- "RNA"   
+                 
 # Plot top single regulon activity marker per TAS 
 top1_regulon_markers <- regulon_markers %>%
   group_by(cluster) %>%
@@ -324,15 +326,43 @@ top1_regulon_markers <- regulon_markers %>%
 print(top1_regulon_markers, n = 8)
 write_csv(top1_regulon_markers, file.path(plot_folder, "2A-Top1_regulon_per_TAS.csv"))
 
-# Optional: quick feature plots of top-1 regulon per TAS on RNA-UMAP
-p_list <- imap(setNames(top1_regulon_markers$gene, top1_regulon_markers$cluster), function(reg, cl){
-  FeaturePlot(so, features = reg, reduction = "umap") + labs(title = paste0(cl, ": ", reg))
-})
+# Optional: quick feature plots of top-1 regulon per TAS on RNA-UMAP and SCENIC UMAP
+DefaultAssay(so) <- "pyscenicAUC"
+
+pairs <- setNames(top1_regulon_markers$gene, top1_regulon_markers$cluster)
+
+# RNA UMAP
+p_rna <- imap(pairs, ~ FeaturePlot(so, features = .x, reduction = "umap") +
+                        labs(title = paste0(.y, ": ", .x)))
 pdf(file.path(plot_folder, "2B-Top1_Regulon_Per_TAS_RNAUMAP.pdf"), width = 12, height = 10)
-print(wrap_plots(p_list, ncol = 3))
+print(wrap_plots(p_rna, ncol = 3))
 dev.off()
 
-DefaultAssay(so) <- "RNA"   
+# SCENIC UMAP
+p_scenic <- imap(pairs, ~ FeaturePlot(so, features = .x, reduction = "SCENIC_UMAP") +
+                           labs(title = paste0(.y, ": ", .x)))
+pdf(file.path(plot_folder, "2C-Top1_Regulon_Per_TAS_SCENICUMAP.pdf"), width = 12, height = 10)
+print(wrap_plots(p_scenic, ncol = 3))
+dev.off()
+
+DefaultAssay(so) <- "RNA"
+
+# Optional: repeat top-1 regulon plots using binarised activity (on/off)
+# DefaultAssay(so) <- "pyscenicAUC_bin"
+# p_rna_bin <- imap(pairs, ~ FeaturePlot(so, features = .x, reduction = "umap") +
+#                             labs(title = paste0(.y, " (BIN): ", .x)))
+# pdf(file.path(plot_folder, "2D-Top1_Regulon_Per_TAS_RNAUMAP_BIN.pdf"), width = 12, height = 10)
+# print(wrap_plots(p_rna_bin, ncol = 3))
+# dev.off()
+# DefaultAssay(so) <- "RNA"
+                 
+# Visual QC / first-pass interpretation:
+# - Top regulons per TAS show expected correspondence with TAS clusters;
+# - Patterns are similar on RNA vs SCENIC embeddings (different trait spaces, similar separation);
+# - Specificity varies by regulon and TAS (gradients are visible).
+
+#
+
 
                  
                  
