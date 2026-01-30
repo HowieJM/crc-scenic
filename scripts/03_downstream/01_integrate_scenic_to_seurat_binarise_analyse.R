@@ -433,7 +433,7 @@ close(con)
 message("Wrote: ", fn)
 
                  
-# below under dev
+#
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -445,7 +445,7 @@ message("Wrote: ", fn)
 # Check alignment
 stopifnot(isTRUE(all.equal(names(so$Subcluster_New), colnames(so[["pyscenicAUC"]]))))
 
-# calculate RSS (regulon × TAS)
+# Calculate RSS (regulon × TAS, continuous AUC)
 rss_res <- calcRSS(
   AUC            = as.matrix(GetAssayData(so[["pyscenicAUC"]], slot = "data")),
   cellAnnotation = so$Subcluster_New,
@@ -453,7 +453,10 @@ rss_res <- calcRSS(
 )
 str(rss_res)
 
-# 9A — SI: all regulons × all TAS (no filtering)
+                 
+## Plot RSS across TAS
+
+# First, [S.I.] for all regulons × all TAS (no filtering)
 rssPlot_all <- plotRSS(
   rss_res,
   zThreshold      = -Inf,   # keep everything
@@ -464,7 +467,7 @@ rssPlot_all <- plotRSS(
 ggsave(filename = file.path(plot_folder, "9A-RSS_full_288x8.png"),
        plot     = rssPlot_all$plot, width = 10, height = 32, dpi = 300)
 
-# 9B — MS: top RSS regulons with z ≥ 2.5 plus forced myTAS1 regulons
+# Second, [MS] for all top RSS regulons with z ≥ 2.5 plus forced myTAS1 regulons
 # full-matrix z-score (row-wise within each TAS)
 rssNorm_all <- scale(rss_res)                   # 288 × 8
 rssNorm_all[rssNorm_all < 0] <- 0               # keep positive part only
@@ -490,7 +493,7 @@ rowOrder <- rev(
                             verbose = FALSE)@row_names_param$labels)
 rss_df$Topic <- factor(rss_df$Topic, levels = rowOrder)
 
-# publication axis orientation: TAS on X, regulons on Y
+# plot with publication axis orientation: TAS on X, regulons on Y
 p_pub <- SCENIC:::dotHeatmap(
   rss_df,
   var.x   = "cellType",   # TAS along x
@@ -507,6 +510,8 @@ p_pub <- SCENIC:::dotHeatmap(
 ggsave(file.path(plot_folder, "9B-RSS_zThres2.5_Top_MyTAS1_forced.png"),
        p_pub, width = 6, height = 8, dpi = 300)
 
+                 # below under dev
+                 
 # Optional “coloured owner” labels (TAS colour per regulon label) — nicer, but not essential
 # (relies on previous rssNorm_all, rows_show, rowOrder)
 tas_cols <- c(
