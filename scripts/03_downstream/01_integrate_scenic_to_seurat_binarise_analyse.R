@@ -363,7 +363,78 @@ DefaultAssay(so) <- "RNA"
 
 #
 
+                 
+# Explore wider range of markers per TAS -> which regulon sets classify each TAS
+DefaultAssay(so) <- "pyscenicAUC"
 
+# Top 10 regulon markers per TAS (continuous AUC)
+top10_regulon_markers <- regulon_markers %>%
+  group_by(cluster) %>%
+  slice_max(order_by = avg_log2FC, n = 10, with_ties = FALSE) %>%
+  ungroup()
+
+# Features used downstream
+feats_top <- unique(top10_regulon_markers$gene)  # unique regulon list
+# Note: in current data no TAS has >10 regulons, so this captures all per TAS
+
+# Heatmap (unscaled AUC)
+h_unscaled <- DoHeatmap(
+  so,
+  features = feats_top,
+  assay    = "pyscenicAUC",
+  slot     = "data",
+  raster   = TRUE
+) + ggtitle("Top regulon markers by TAS (AUC, unscaled)")
+
+# Scale AUC for these features (row-wise z within regulon)
+# Note: ScaleData() modifies the 'pyscenicAUC' assay in 'so' for these features.
+so <- ScaleData(
+  so,
+  assay    = "pyscenicAUC",
+  features = feats_top,
+  verbose  = FALSE
+)
+
+# Heatmap (scaled AUC)
+h_scaled <- DoHeatmap(
+  so,
+  features = feats_top,
+  assay    = "pyscenicAUC",
+  slot     = "scale.data",
+  raster   = TRUE
+) +
+  ggtitle("Top 10 regulon markers by TAS (scaled AUC)") +
+  labs(fill = "Scaled AUC (z)")
+
+# Save PNGs (and optionally PDF)
+ggsave(file.path(plot_folder, "7A-Heatmap_TopRegulonMarkers_unscaled.png"),
+       h_unscaled, width = 8, height = 10, dpi = 300)
+ggsave(file.path(plot_folder, "7B-Heatmap_TopRegulonMarkers_scaled.png"),
+       h_scaled,   width = 8, height = 10, dpi = 300)
+# ggsave(file.path(plot_folder, "7B-Heatmap_TopRegulonMarkers_scaled.pdf"), h_scaled, width = 8, height = 10)
+
+# Export the table used
+write_csv(top10_regulon_markers, file.path(plot_folder, "8-top10_regulon_markers.csv"))
+
+# Interpretation (heatmap of top regulon markers):
+# - Clear diagonal: TAS-specific regulon activity is visible, with some overlap across TAS.
+# - Counts vary by TAS (not every TAS necessarily has 10 enriched regulons).
+# - Specificity differs across regulons/TAS; gradients are common.
+# - These “top” regulons (FindAllMarkers) need not be unique; we assess specificity via RSS below.
+
+# Optional: export genes for top-1 regulon per TAS
+regList <- regulons[ intersect(names(regulons), top1_regulon_markers$gene) ]
+fn <- file.path(plot_folder, "2D-Top1_regulon_per_TAS_genes.txt")
+con <- file(fn, "w")
+for (rg in names(regList)) {
+  writeLines(paste0("Regulon: ", rg, "\nGenes: ", paste(regList[[rg]], collapse = ", "), "\n"), con)
+}
+close(con)
+message("Wrote: ", fn)
+
+#
+
+                 
                  
                  
                  
