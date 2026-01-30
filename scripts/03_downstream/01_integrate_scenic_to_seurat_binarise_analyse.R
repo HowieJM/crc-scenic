@@ -589,11 +589,49 @@ p_final <- ylab_text + ylab_strip + p_rev_col +
 ggsave(file.path(plot_folder, "9B-RSS_zThres2.5_Top_colouredByZowner.png"),
        p_final, width = 10, height = 5, dpi = 300)
 
+                 
+# Fourth [optional] 9C — colour AUC "activity" and size RSS "specificity", colour = mean AUC per TAS (rows_show subset)
+DefaultAssay(so) <- "pyscenicAUC"
+
+auc_mat    <- GetAssayData(so[["pyscenicAUC"]], slot = "data")
+cell_order <- levels(rss_df$cellType)  # TAS order used in plots
+
+# mean AUC per TAS for the selected regulons (rows_show)
+avgAUC <- sapply(cell_order, function(ct) {
+  rowMeans(auc_mat[rows_show, so$Subcluster_New == ct, drop = FALSE])
+})
+avgAUC <- as.matrix(avgAUC)
+colnames(avgAUC) <- cell_order
+rownames(avgAUC) <- rows_show
+
+# melt and merge with RSS (for point size)
+df_auc <- reshape2::melt(avgAUC); colnames(df_auc) <- c("Topic","cellType","AUC")
+df_rss <- reshape2::melt(rss_sub); colnames(df_rss) <- c("Topic","cellType","RSS")
+rss_df_auc <- merge(df_rss, df_auc)
+
+# regulons on X, TAS on Y (consistent with 9B-pretty composition)
+p_auc <- SCENIC:::dotHeatmap(
+  rss_df_auc, var.x = "Topic", var.y = "cellType",
+  var.size = "RSS", var.col = "AUC",
+  col.low = "grey90", col.mid = "lightcoral", col.high = "red4"
+) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 14),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        plot.margin  = margin(l = 2))
+
+# stitch TAS label + strip + dot-plot (reuses ylab_text, ylab_strip)
+p_auc_final <- ylab_text + ylab_strip + p_auc +
+  patchwork::plot_layout(widths = c(0.12, 0.02, 1))
+
+ggsave(file.path(plot_folder, "9C-RSS_size_rawAUC_zThres2.5_Top.png"),
+       p_auc_final, width = 10, height = 5, dpi = 300)
 
 
+
+
+                 
                  # below under dev
-
-
 
 
 
@@ -610,23 +648,7 @@ for (rg in names(regs_subset)) {
 }
 sink(); message("Saved: ", sub_txt)
 
-# (NGFR aside removed)
 
-# (Optional) 9C — AUC-coloured dot-heatmap (size=RSS, colour=AUC), if you like to keep it
-# This visualises average AUC per TAS for rows_show in addition to RSS size.
-# DefaultAssay(so) <- "pyscenicAUC"
-# auc_mat    <- GetAssayData(so[["pyscenicAUC"]], slot = "data")
-# cell_order <- colnames(rss_res)
-# avgAUC <- sapply(cell_order, function(ct) rowMeans(auc_mat[rows_show, so$Subcluster_New == ct, drop = FALSE]))
-# colnames(avgAUC) <- cell_order
-# df_auc <- reshape2::melt(avgAUC); colnames(df_auc) <- c("Topic","cellType","AUC")
-# df_rss <- reshape2::melt(rss_sub); colnames(df_rss) <- c("Topic","cellType","RSS")
-# rss_df_auc <- merge(df_rss, df_auc)
-# p_auc <- SCENIC:::dotHeatmap(rss_df_auc, var.x="cellType", var.y="Topic",
-#                              var.size="RSS", var.col="AUC",
-#                              col.low="grey90", col.mid="lightcoral", col.high="red4")
-# ggsave(file.path(plot_folder, "9C-RSS_size_rawAUC_zThres2.5_Top.png"),
-#        p_auc, width = 10, height = 5, dpi = 300)
 
 # 12A/12B — heatmaps for rows_show regulons (raw and scaled AUC)
 rss_feats <- intersect(rows_show, rownames(so[["pyscenicAUC"]]))  # expect ~35
