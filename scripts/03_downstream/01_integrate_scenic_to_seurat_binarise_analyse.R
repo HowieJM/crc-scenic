@@ -511,7 +511,6 @@ p_pub <- SCENIC:::dotHeatmap(
 ggsave(file.path(plot_folder, "9B-RSS_zThres2.5_Top_MyTAS1_forced.png"),
        p_pub, width = 6, height = 8, dpi = 300)
 
-                 # below under dev
 
 # Third, [optional] (prettier) 9B variant: TAS Y, regulon X
 # TAS labels colour blocked; 
@@ -524,6 +523,10 @@ tas_cols <- c(
   "apTAS" ="#8C3459","pTAS"  ="#A19217"
 )
 
+# ensure tas_cols order matches TAS order in the plot
+tas_cols_use <- tas_cols[levels(rss_df$cellType)]
+stopifnot(!any(is.na(tas_cols_use)))  # all TAS levels must have colours
+                 
 # Base dot-heatmap with regulons on X, TAS on Y
 p_rev <- SCENIC:::dotHeatmap(
   rss_df,
