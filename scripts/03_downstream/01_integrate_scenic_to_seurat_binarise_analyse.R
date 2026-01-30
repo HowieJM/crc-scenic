@@ -524,7 +524,7 @@ tas_cols <- c(
 )
 
 # ensure tas_cols order matches TAS order in the plot
-_use <- tas_cols[levels(rss_df$cellType)]
+tas_cols_use <- tas_cols[levels(rss_df$cellType)]
 stopifnot(!any(is.na(tas_cols_use)))  # all TAS levels must have colours
                  
 # Base dot-heatmap with regulons on X, TAS on Y
