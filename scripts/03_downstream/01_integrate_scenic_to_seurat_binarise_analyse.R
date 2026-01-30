@@ -609,6 +609,10 @@ df_auc <- reshape2::melt(avgAUC); colnames(df_auc) <- c("Topic","cellType","AUC"
 df_rss <- reshape2::melt(rss_sub); colnames(df_rss) <- c("Topic","cellType","RSS")
 rss_df_auc <- merge(df_rss, df_auc)
 
+# keep the same ordering used in 9B (so the grid doesn’t reshuffle)
+rss_df_auc$cellType <- factor(rss_df_auc$cellType, levels = levels(rss_df$cellType))
+rss_df_auc$Topic    <- factor(rss_df_auc$Topic,    levels = levels(rss_df$Topic))
+
 # regulons on X, TAS on Y (consistent with 9B-pretty composition)
 p_auc <- SCENIC:::dotHeatmap(
   rss_df_auc, var.x = "Topic", var.y = "cellType",
@@ -627,7 +631,7 @@ p_auc_final <- ylab_text + ylab_strip + p_auc +
 ggsave(file.path(plot_folder, "9C-RSS_size_rawAUC_zThres2.5_Top.png"),
        p_auc_final, width = 10, height = 5, dpi = 300)
 
-
+DefaultAssay(so) <- "RNA"
 
 
                  
