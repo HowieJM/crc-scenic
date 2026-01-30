@@ -205,7 +205,7 @@ so[['pyscenicAUC']] <- CreateAssayObject(data = AUCmat)  # regulon activity is n
 stopifnot(identical(rownames(AUCmat), rownames(so[["pyscenicAUC"]]))) # quick check
 str(so)
                  
-# Extract thresholds for binarisation: # Note -> the list include candidate, non-aggregated regulons
+# Extract thresholds for binarisation: # Note -> the list includes candidate, non-aggregated regulons
 regulonAucThresholds <- SCopeLoomR::get_regulon_thresholds(loom, only.selected = TRUE)                
 # Also note: in this loom the vector is inverted (names = thresholds, values = regulon IDs); so ->
 
