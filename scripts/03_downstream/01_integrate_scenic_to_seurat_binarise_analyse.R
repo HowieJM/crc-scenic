@@ -242,19 +242,34 @@ dim(so[["pyscenicAUC_bin"]])  # expect 288 24044, proceed
 # We now have a continuous measure of regulon activity, and a binary "active" or "inactive" state per cell              
           
 
-                      ## dev in progress .. 
+# Add SCENIC embeddings (UMAP/t-SNE computed on AUC in the loom)
+embeddings <- get_embeddings(loom)  # list 
+stopifnot("SCENIC AUC UMAP" %in% names(embeddings), "SCENIC AUC t-SNE" %in% names(embeddings))
 
-            
-# Add SCENIC embeddings
-embeddings <- get_embeddings(loom)  # UMAP and tSNE based on AUC
-umap_matrix <- embeddings[["SCENIC AUC UMAP"]]; colnames(umap_matrix) <- c("UMAP_1","UMAP_2")
+umap_matrix <- embeddings[["SCENIC AUC UMAP"]]
+tsne_matrix <- embeddings[["SCENIC AUC t-SNE"]]
+
+# Ensure cell alignment (rows) and name dims for Seurat
+if (!identical(rownames(umap_matrix), colnames(so))) {
+  # If needed, align by cell name; error if mismatch
+  stopifnot(all(rownames(umap_matrix) %in% colnames(so)))
+  umap_matrix <- umap_matrix[colnames(so), , drop = FALSE]
+}
+colnames(umap_matrix) <- c("UMAP_1", "UMAP_2")
+
+if (!identical(rownames(tsne_matrix), colnames(so))) {
+  stopifnot(all(rownames(tsne_matrix) %in% colnames(so)))
+  tsne_matrix <- tsne_matrix[colnames(so), , drop = FALSE]
+}
+colnames(tsne_matrix) <- c("tSNE_1", "tSNE_2")
+
 so[["SCENIC_UMAP"]]  <- CreateDimReducObject(embeddings = umap_matrix, key = "SCENICUMAP_",  assay = "pyscenicAUC")
-tsne_matrix <- embeddings[["SCENIC AUC t-SNE"]]; colnames(tsne_matrix) <- c("tSNE_1","tSNE_2")
-so[["SCENIC_tSNE"]]  <- CreateDimReducObject(embeddings = tsne_matrix, key = "SCENICtSNE_", assay = "pyscenicAUC")
+so[["SCENIC_tSNE"]]  <- CreateDimReducObject(embeddings = tsne_matrix, key = "SCENICtSNE_",   assay = "pyscenicAUC")
 
-# Save integrated Seurat
-saveRDS(so, file = file.path(out_folder,
-  "DATA_Joanito_Stroma-only_filtered_for_SCENIC_input_withBinarizedRegulonActivity_and_Regulon_UMAP_tSNE.rds"))
+
+# Save integrated Seurat -> unhash to save, can reinitiate downstream analysis from here
+# saveRDS(so, file = file.path(out_folder,
+#   "DATA_Joanito_Stroma-only_filtered_for_SCENIC_input_withBinarizedRegulonActivity_and_Regulon_UMAP_tSNE.rds"))
 
 # Close loom
 close_loom(loom)
