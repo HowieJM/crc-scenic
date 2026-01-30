@@ -302,7 +302,8 @@ pdf(out_F, width = 18, height = 6)
 plot(u1 + u2 + u3 + plot_layout(ncol = 3, widths = c(1,1,1)))
 dev.off()
 
-# 2 - Identify TAS-specific regulons (continuous AUC) -> FindAllMarkers method
+# 2 - Identify TAS-specific regulons (continuous AUC) — FindAllMarkers gives *enriched* (top) regulons per TAS,
+#    not necessarily unique; we assess specificity later via RSS.                 
 DefaultAssay(so) <- "pyscenicAUC"
 Idents(so) <- so$Subcluster_New
 
