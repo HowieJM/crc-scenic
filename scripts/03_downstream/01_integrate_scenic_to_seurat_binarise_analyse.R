@@ -209,8 +209,12 @@ str(so)
                  
 # Extract thresholds for binarisation (note: list can include candidate, non-aggregated regulons)
 regulonAucThresholds <- SCopeLoomR::get_regulon_thresholds(loom, only.selected = TRUE)
-thresholds_df <- data.frame(Regulon = names(regulonAucThresholds),
-                            Threshold = unlist(regulonAucThresholds))
+
+# Note: in this loom the vector is inverted (names = thresholds, values = regulon IDs); swap for CSV
+thresholds_df <- data.frame(
+  Regulon   = unlist(regulonAucThresholds),     # values = regulon IDs
+  Threshold = as.numeric(names(regulonAucThresholds))  # names = thresholds (coerce to numeric)
+)
 write.csv(thresholds_df, file = file.path(out_folder, "regulonAUC_thresholds.csv"),
           row.names = FALSE)
 
