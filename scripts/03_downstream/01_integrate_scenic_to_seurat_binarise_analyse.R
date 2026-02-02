@@ -800,9 +800,271 @@ DefaultAssay(so) <- assay_old
 
 #
 
-# below under dev                  
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## ORA — enrichment to annotate TAS-specific regulons
+## We run two passes:
+##   (15) top-2 regulons per TAS (8 × 2 = 16 sets)
+##   (16) RSS/z-threshold regulons (~35; incl. forced myTAS1 set)
+##
+## NOTE: GO:BP & Reactome were reported for HAND2 and IKZF2 in the MS; here,
+##       we run all sets for completeness and export tables/plots by regulon.
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+# Load ORA packages 
+suppressPackageStartupMessages({
+  library(clusterProfiler)
+  library(org.Hs.eg.db)
+  library(ReactomePA)
+  library(msigdbr)
+  library(enrichplot)
+  library(readr)
+})
 
+# Output root for ORA plots/tables
+ORA_folder <- file.path(plot_folder, "15-TopRegulonPerCelltypeORA")
+if (!dir.exists(ORA_folder)) dir.create(ORA_folder, recursive = TRUE, showWarnings = FALSE)
+
+# --- helpers (mk_dir / safe_dot / safe_write / safe_saveplot) and constants ---
+mk_dir <- function(path) if (!dir.exists(path)) dir.create(path, recursive = TRUE)
+
+safe_dot <- function(x, ttl, n = TOP_N_TERMS){
+
+  # extra guard: sometimes upstream calls can return NULL
+  if (is.null(x) || is.null(x@result) || nrow(x@result) == 0){
+    return(list(
+      plot = ggplot2::ggplot() + ggplot2::theme_void() +
+        ggplot2::labs(title = paste(ttl, "– no significant terms")) +
+        ggplot2::theme(plot.title.position = "plot",
+                       plot.title = ggplot2::element_text(hjust = TITLE_JUST,
+                                                          size  = TITLE_SIZE),
+                       legend.position = "none"),
+      tag  = "NULL"))
+  }
+
+  list(
+    plot = enrichplot::dotplot(
+      x, showCategory = min(n, nrow(x@result)), font.size = FONT_Y, label_format = 45
+    ) + ggplot2::ggtitle(ttl) +
+      ggplot2::theme(plot.title.position = "plot",
+                     plot.title  = ggplot2::element_text(hjust = TITLE_JUST, size = TITLE_SIZE),
+                     axis.text.y = ggplot2::element_text(size = FONT_Y),
+                     axis.text.x = ggplot2::element_text(size = FONT_X),
+                     legend.text = ggplot2::element_text(size = FONT_LEGEND),
+                     legend.title= ggplot2::element_text(size = FONT_LEGEND)),
+    tag  = "sig")
+}
+
+safe_write <- function(x, fn_csv){
+  if (is.null(x) || is.null(x@result) || nrow(x@result) == 0){
+    readr::write_csv(tibble::tibble(note = "no significant terms"), fn_csv)
+  } else {
+    readr::write_csv(x@result, fn_csv)
+  }
+}
+
+safe_saveplot <- function(plot_obj, fn_png,
+                          width = FIG_WIDTH, height = FIG_HEIGHT, dpi = 300,
+                          save_pdf = TRUE){
+  # Fallback stub if ggsave fails
+  stub_plot <- function(outfile, is_pdf = FALSE){
+    if (is_pdf) grDevices::pdf(outfile, width = 7, height = 7) else
+      grDevices::png(outfile, width = 7 * dpi, height = 7 * dpi, res = dpi)
+    plot.new(); text(0.5, 0.5, "no plot", cex = 2); grDevices::dev.off()
+  }
+  tryCatch(ggplot2::ggsave(filename = fn_png, plot = plot_obj,
+                           width = width, height = height, dpi = dpi),
+           error = function(e){ warning("png save failed: ", conditionMessage(e)); stub_plot(fn_png, FALSE) })
+  if (save_pdf){
+    fn_pdf <- sub("\\.png$", ".pdf", fn_png, ignore.case = TRUE)
+    tryCatch(ggplot2::ggsave(filename = fn_pdf, plot = plot_obj,
+                             width = width, height = height, device = cairo_pdf),
+             error = function(e){ warning("pdf save failed: ", conditionMessage(e)); stub_plot(fn_pdf, TRUE) })
+  }
+}
+
+TOP_N_TERMS <- 12; FIG_WIDTH <- 10; FIG_HEIGHT <- 7
+FONT_Y <- 17; FONT_X <- 14; FONT_LEGEND <- 14; TITLE_SIZE <- 17; TITLE_JUST <- 0.5
+
+# once per session: Hallmark TERM2GENE
+hallmark_df <- msigdbr::msigdbr(species = "Homo sapiens", category = "H") |>
+  dplyr::select(gs_name, entrez_gene)
+
+# NOTE (universe/background):
+# For the repo version we run ORA with the DEFAULT background for each database
+# (OrgDb for GO; Reactome for ReactomePA; TERM2GENE for Hallmark).
+# This matches the manuscript’s intent (quick functional annotation) and avoids
+# having to tune minGSSize / p/q thresholds when restricting to a custom universe.
+#
+# OPTIONAL: if you want to use the Seurat RNA genes as background, compute a
+# universe Entrez vector once and pass it into run_regulon_ora() via
+# `universe_entrez = universe_entrez`.
+#
+# universe note: if you restrict too hard, you may need to tune minGSSize and/or
+# loosen p/q thresholds.
+
+# OPTIONAL: build a background universe from the RNA assay genes (Seurat rownames)
+# DefaultAssay(so) <- "RNA"
+# all_symbols <- rownames(so)
+# universe_entrez <- clusterProfiler::bitr(all_symbols, "SYMBOL", "ENTREZID", org.Hs.eg.db) |>
+#   dplyr::pull(ENTREZID) |>
+#   unique()
+# length(universe_entrez)
+
+# single wrapper for one regulon gene set
+run_regulon_ora <- function(i, sig_name, genes_chr,
+                            out_dir = ORA_folder,
+                            hallmark,
+                            universe_entrez = NULL){
+
+  # convert symbols → Entrez
+  entrez_df <- clusterProfiler::bitr(genes_chr, "SYMBOL", "ENTREZID", org.Hs.eg.db)
+
+  # Guard: if no mapping, write a small note + return
+  if (is.null(entrez_df) || nrow(entrez_df) == 0){
+    reg_folder <- file.path(out_dir, sprintf("%02d_%s", i, sig_name)); mk_dir(reg_folder)
+    readr::write_csv(tibble::tibble(note = "No SYMBOL→ENTREZID mapping; skipping ORA"),
+                     file.path(reg_folder, "NOTE_no_entrez_mapping.csv"))
+    return(invisible(NULL))
+  }
+
+  entrez <- entrez_df |>
+    dplyr::pull(ENTREZID) |>
+    unique()
+
+  # If a universe is provided, pass it through; else use defaults
+  u_arg <- if (!is.null(universe_entrez)) list(universe = universe_entrez) else list()
+
+  ego_bp <- do.call(clusterProfiler::enrichGO, c(list(
+    gene = entrez,
+    OrgDb = org.Hs.eg.db,
+    keyType = "ENTREZID",
+    ont = "BP",
+    pAdjustMethod = "BH",
+    pvalueCutoff = 0.05,
+    qvalueCutoff = 0.20,
+    readable = TRUE
+  ), u_arg))
+
+  erct <- do.call(ReactomePA::enrichPathway, c(list(
+    gene = entrez,
+    pvalueCutoff = 0.05,
+    pAdjustMethod = "BH",
+    readable = TRUE
+  ), u_arg))
+
+  ehall <- do.call(clusterProfiler::enricher, c(list(
+    gene = entrez,
+    TERM2GENE = hallmark,
+    pAdjustMethod = "BH",
+    qvalueCutoff = 0.20
+  ), u_arg))
+
+  reg_folder <- file.path(out_dir, sprintf("%02d_%s", i, sig_name)); mk_dir(reg_folder)
+
+  go_out <- safe_dot(ego_bp, paste("GO:BP –", sig_name))
+  safe_saveplot(go_out$plot, file.path(reg_folder, paste0("GO_BP_dotplot_", go_out$tag, ".png")))
+  safe_write(ego_bp, file.path(reg_folder, "GO_BP_fullTable.csv"))
+
+  re_out <- safe_dot(erct, paste("Reactome –", sig_name))
+  safe_saveplot(re_out$plot, file.path(reg_folder, paste0("Reactome_dotplot_", re_out$tag, ".png")))
+  safe_write(erct, file.path(reg_folder, "Reactome_fullTable.csv"))
+
+  ha_out <- safe_dot(ehall, paste("Hallmark –", sig_name))
+  safe_saveplot(ha_out$plot, file.path(reg_folder, paste0("Hallmark_dotplot_", ha_out$tag, ".png")))
+  safe_write(ehall, file.path(reg_folder, "Hallmark_fullTable.csv"))
+
+  invisible(NULL)
+}                 
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## 15 — ORA on the 16 signatures (top 2 RSS regulons per TAS)
+
+# Re-extract top-2 per TAS from rss_res
+topN <- 2
+top2_tbl <- rss_res |>
+  as.data.frame() |>
+  tibble::rownames_to_column("regulon") |>
+  tidyr::pivot_longer(-regulon, names_to = "cellType", values_to = "RSS") |>
+  dplyr::group_by(cellType) |>
+  dplyr::slice_max(RSS, n = topN, with_ties = FALSE) |>
+  dplyr::arrange(cellType, dplyr::desc(RSS)) |>
+  dplyr::mutate(rank = dplyr::row_number())  # 1,2 within TAS
+
+# Map to friendly names  <TAS>-Reg<1/2>--<regulon>
+name_map <- top2_tbl %>%
+  dplyr::mutate(pretty = stringr::str_c(cellType, "-Reg", rank, "--", regulon)) %>%
+  dplyr::ungroup() %>%
+  dplyr::select(regulon, pretty) %>%
+  tibble::deframe()
+
+# Collect gene sets (list of HGNC symbols per regulon)
+sig_list <- regulons[names(name_map)]
+names(sig_list) <- name_map
+str(sig_list, max.level = 1)  # 16 sets
+
+# Run for all 16
+for (j in seq_along(sig_list)) {
+  run_regulon_ora(j, names(sig_list)[j], sig_list[[j]],
+                  out_dir = ORA_folder, hallmark = hallmark_df)
+}
+
+# Explicitly re-run HAND2/IKZF2 as the two MS-highlighted apTAS regulons (keeps tidy subfolders)
+sig_top2 <- sig_list[c("apTAS-Reg1--HAND2-(+)-motif",
+                       "apTAS-Reg2--IKZF2-(+)-motif")]
+for (j in seq_along(sig_top2)) {
+  run_regulon_ora(j, names(sig_top2)[j], sig_top2[[j]],
+                  out_dir = ORA_folder, hallmark = hallmark_df)
+}
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## 16 — ORA on RSS/z-threshold regulons (≈35; incl. forced myTAS1)
+
+ORA_folder_RSS <- file.path(plot_folder, "16-TopRegulonPerCelltypeORA_RSS_Version")
+mk_dir(ORA_folder_RSS)
+
+rows_rss_valid <- intersect(rows_show, names(regulons))
+
+rss_df_rank <- data.frame(
+  regulon   = rows_rss_valid,
+  cell_type = apply(rss_res[rows_rss_valid, ], 1, function(v) colnames(rss_res)[which.max(v)]),
+  stringsAsFactors = FALSE
+)
+rss_df_rank$rss <- mapply(function(reg, ct) rss_res[reg, ct],
+                          rss_df_rank$regulon, rss_df_rank$cell_type)
+
+rss_df_rank <- dplyr::group_by(rss_df_rank, cell_type) |>
+  dplyr::arrange(dplyr::desc(rss), .by_group = TRUE) |>
+  dplyr::mutate(rank = dplyr::row_number()) |>
+  dplyr::ungroup()
+
+for (k in seq_len(nrow(rss_df_rank))) {
+  reg_name <- rss_df_rank$regulon[k]
+  cell_tag <- rss_df_rank$cell_type[k]
+  rk       <- rss_df_rank$rank[k]
+
+  reg_folder <- file.path(ORA_folder_RSS, sprintf("%s_%02d--%s", cell_tag, rk, reg_name))
+  mk_dir(reg_folder)
+
+  run_regulon_ora(i = k, sig_name = reg_name, genes_chr = regulons[[reg_name]],
+                  out_dir = reg_folder, hallmark = hallmark_df)
+}
+
+message(nrow(rss_df_rank), " regulons processed → ", normalizePath(ORA_folder_RSS))
+
+# README note about ranking vs figure order
+readme_txt <- c(
+  "Note – the ordering within each TAS folder is based on the raw RSS ",
+  "value of that regulon in the corresponding cell type. ",
+  "Therefore the ranking can differ slightly from the order shown in ",
+  "plot 9B-RSS_zThres2.5_Top_MyTAS1_forced_pres.png. ",
+  "Example: in this directory the apTAS regulons are numbered 1-9, ",
+  "whereas the plot displays ten apTAS regulons (including DLX2). ",
+  "DLX2 is ranked under mscTAS here because its highest RSS occurs ",
+  "in mscTAS, even though its within-cluster specificity is weaker."
+)
+writeLines(readme_txt, file.path(ORA_folder_RSS, "README.txt"))              
+
+#
 
 ## TCGA COAD-READ stratification + KM plots not used in manuscript, so removed
 
