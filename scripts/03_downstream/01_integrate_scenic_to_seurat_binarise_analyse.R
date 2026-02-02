@@ -810,7 +810,7 @@ DefaultAssay(so) <- assay_old
 ##       we run all sets for completeness and export tables/plots by regulon.
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# Load ORA packages 
+# Load  packages 
 suppressPackageStartupMessages({
   library(clusterProfiler)
   library(org.Hs.eg.db)
@@ -1068,15 +1068,17 @@ writeLines(readme_txt, file.path(ORA_folder_RSS, "README.txt"))
 
 ## TCGA COAD-READ stratification + KM plots not used in manuscript, so removed
 
+#
 
+  
+####################################################################################################
+sI <- sessionInfo()
+# Default: single canonical files in outputs/03_downstream/
+saveRDS(object = sI, file = file.path(out_folder, "sessionInfo.rds"))
+writeLines(capture.output(sI), con = file.path(out_folder, "sessionInfo.txt"))
 
-
-                 
-                 
-                 
-                 
-                 
-
-
-
-
+# Optional: timestamped copies (uncomment if you want to keep multiple runs)
+# ts <- format(Sys.time(), "%Y%m%d_%H%M%S")
+# saveRDS(object = sI, file = file.path(out_folder, paste0("sessionInfo_", ts, ".rds")))
+# writeLines(capture.output(sI), con = file.path(out_folder, paste0("sessionInfo_", ts, ".txt")))
+####################################################################################################
