@@ -596,6 +596,8 @@ DefaultAssay(so) <- "pyscenicAUC"
 auc_mat    <- GetAssayData(so[["pyscenicAUC"]], slot = "data")
 cell_order <- levels(rss_df$cellType)  # TAS order used in plots
 
+stopifnot(exists("rows_show"))
+                 
 # mean AUC per TAS for the selected regulons (rows_show)
 avgAUC <- sapply(cell_order, function(ct) {
   rowMeans(auc_mat[rows_show, so$Subcluster_New == ct, drop = FALSE])
@@ -624,6 +626,8 @@ p_auc <- SCENIC:::dotHeatmap(
         axis.ticks.y = element_blank(),
         plot.margin  = margin(l = 2))
 
+stopifnot(exists("ylab_text"), exists("ylab_strip"))
+
 # stitch TAS label + strip + dot-plot (reuses ylab_text, ylab_strip)
 p_auc_final <- ylab_text + ylab_strip + p_auc +
   patchwork::plot_layout(widths = c(0.12, 0.02, 1))
@@ -633,28 +637,113 @@ ggsave(file.path(plot_folder, "9C-RSS_size_rawAUC_zThres2.5_Top.png"),
 
 DefaultAssay(so) <- "RNA"
 
-
+#
                  
-                 # below under dev
+# 10 — Export the top regulons with their gene sets as defined via RSS above -> aka 35 regulons
+stopifnot(exists("rows_show"), exists("regulons"))
+regs_in_order <- rows_show[rows_show %in% names(regulons)]
+regs_subset   <- regulons[regs_in_order]
 
-
-
-
-
-                 
-
-# 10 — export top regulons’ gene sets (as defined by rows_show)
-regs_subset <- regulons[ intersect(names(regulons), rows_show) ]
 sub_txt <- file.path(plot_folder, "10-pySCENIC_regulons_list_RSSz_2.5_myTAS1_inc_subset.txt")
-sink(sub_txt)
+con <- file(sub_txt, "w")
 for (rg in names(regs_subset)) {
-  cat("Regulon:", rg, "\nGenes:", paste(regs_subset[[rg]], collapse = ", "), "\n\n")
+  writeLines(paste0("Regulon: ", rg, "\nGenes: ",
+                    paste(regs_subset[[rg]], collapse = ", "), "\n"), con)
 }
-sink(); message("Saved: ", sub_txt)
+close(con); message("Saved TXT: ", sub_txt)
+
+readr::write_csv(
+  tibble::tibble(Regulon = names(regs_subset),
+                 Genes   = vapply(regs_subset, \(v) paste(v, collapse = ";"), character(1))),
+  file.path(plot_folder, "10-pySCENIC_regulons_list_RSSz_2.5_myTAS1_inc_subset.csv")
+)
+
+#
+                 
+# 11 - Not relevant to paper, removed detailed NGFR analysis
+
+#
+                 
+# Now, we have specific, but also partially shared regulons, per TAS -> some with more or less activity 
+# So, we next look across cells at regulon activity, in a heatmap of the RSS top regulons [and forced]:
+                 
+
+# 12 - Top RSS-Selected Regulon Heatmaps, AUC-Scaled -> Plot 12B
+
+# order regulons as in the 9B plot;
+# if p_rev exists (optional pretty 9B), use its x/y levels; else fall back to rows_show.
+reg_order_full <- if (exists("p_rev")) {
+  # p_rev has regulons on X after the "pretty" step; we need the full names with the suffix
+  x_stripped <- levels(p_rev$data$Topic)                         # stripped labels
+  # map stripped back to full (rows_show contains full names with '-(+)-motif')
+  rows_show[ match(x_stripped, sub("-\\(\\+\\)-motif$", "", rows_show)) ]
+} else {
+  rows_show
+}
+reg_order_full <- reg_order_full[!is.na(reg_order_full)]
+
+# ensure all requested regulons are present in the AUC assay
+rss_feats <- intersect(reg_order_full, rownames(so[["pyscenicAUC"]]))
+message(length(rss_feats), " regulons will be plotted.")
+
+# keep the TAS palette (re-use if already defined)
+tas_palette <- if (exists("tas_cols")) tas_cols else c(
+  "myTAS1"="#0589B6","myTAS2"="#B6D1DA","myTAS3"="#094E95",
+  "mscTAS"="#F49A16","iTAS1" ="#8F1B1D","iTAS2" ="#EA5A5D",
+  "apTAS" ="#8C3459","pTAS"  ="#A19217"
+)
+tas_palette <- tas_palette[levels(so$Subcluster_New)]  # align to factor order
+
+# scale AUC row-wise for the selected regulons
+so <- ScaleData(
+  so,
+  assay    = "pyscenicAUC",
+  features = rss_feats,
+  verbose  = FALSE
+)
+
+# clean y-axis labels (drop '-(+)-motif' only for display)
+row_labs <- sub("-\\(\\+\\)-motif$", "", rss_feats)
+names(row_labs) <- rss_feats
+
+# Plot scaled heatmap
+h_scaled <- DoHeatmap(
+  object      = so,
+  features    = rss_feats,
+  assay       = "pyscenicAUC",
+  slot        = "scale.data",
+  raster      = TRUE,
+  group.colors= tas_palette
+) +
+  labs(fill = "Scaled AUC (z)") +
+  scale_y_discrete(labels = row_labs) +
+  theme(
+    axis.text.y   = element_text(size = 10),
+    legend.text   = element_text(size = 10),
+    legend.title  = element_text(size = 12),
+    legend.position = "right"
+  ) +
+  guides(colour = "none",
+         fill   = guide_colourbar(barwidth = 0.5, barheight = 7))
+
+ggsave(file.path(plot_folder, "12B-Heatmap_RSSselected_scaledAUC.png"),
+       h_scaled, width = 12, height = 8, dpi = 300)
+
+# scaling is across all cells, 1 regulon at a time ;) 
+# Note -: from this, we can see very clear TAS specific activity in top regulons per TAS -> but, it varies to some degree how much!                 
+
+# optional
+DefaultAssay(so) <- "RNA"
 
 
 
-# 12A/12B — heatmaps for rows_show regulons (raw and scaled AUC)
+
+
+
+
+                 # beow under dev 
+
+                 
 rss_feats <- intersect(rows_show, rownames(so[["pyscenicAUC"]]))  # expect ~35
 message(length(rss_feats), " regulons will be plotted.")
 
