@@ -106,7 +106,7 @@ n_regs <- ncol(loom_file[["col_attrs/MotifRegulonsAUC"]][])
 message("Stable Regulons (AUC; ≥80% of runs): ", n_regs)  #expect 288 regulons 
 
 
-# Additional deeper checks (unhash if desired):
+# Additional deeper checks (un-comment if desired):
 #loom_file$ls(recursive = TRUE)
 #loom_file[["layers"]]
 
