@@ -804,6 +804,10 @@ DefaultAssay(so) <- assay_old
 
 
 
+## TCGA COAD-READ stratification + KM plots not used in manuscript, so removed
+
+
+
 
                  
                  
