@@ -151,7 +151,7 @@ if (!"RNA" %in% names(so@assays)) {
 }
 DefaultAssay(so) <- "RNA"
                  
-## Optional: external TAS annotation CSV (Magdalena’s updated labels, if not already added)
+## External TAS annotation CSV (Magdalena’s updated labels, if not already added)
 ANNO_CSV <- Sys.getenv("TAS_ANNOT_CSV", unset = "data/Stroma_Annotation_Seurat.csv")
 anno <- read.csv(ANNO_CSV, header = TRUE)
 str(anno) # these annotations applied to the entire pre-SCENIC filtered Seurat object
