@@ -364,8 +364,11 @@ DefaultAssay(so) <- "RNA"
 
 #
 
+# exploratory plots 3-6 not relevant to paper, removed
+
+#
                  
-# Explore wider range of markers per TAS -> which regulon sets classify each TAS
+# 7 - Explore wider range of markers per TAS -> which regulon sets classify each TAS
 DefaultAssay(so) <- "pyscenicAUC"
 
 # Top 10 regulon markers per TAS (continuous AUC)
@@ -423,7 +426,7 @@ write_csv(top10_regulon_markers, file.path(plot_folder, "8-top10_regulon_markers
 # - Specificity differs across regulons/TAS; gradients are common.
 # - These “top” regulons (FindAllMarkers) need not be unique; we assess specificity via RSS below.
 
-# Optional: export genes for top-1 regulon per TAS
+# optional: export genes for top-1 regulon per TAS
 regList <- regulons[ intersect(names(regulons), top1_regulon_markers$gene) ]
 fn <- file.path(plot_folder, "2D-Top1_regulon_per_TAS_genes.txt")
 con <- file(fn, "w")
@@ -432,13 +435,15 @@ for (rg in names(regList)) {
 }
 close(con)
 message("Wrote: ", fn)
-
                  
 #
 
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-## RSS – regulon specificity (continuous AUC)
+# plot 8 not relevant to paper, removed
+                 
+#
+                 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## 9 - RSS – regulon specificity (continuous AUC)
 
 # The above analysis uses FindAllMarkers (enriched, not unique);
 # Now, we use RSS to assess specificity across TAS.
@@ -729,8 +734,8 @@ h_scaled <- DoHeatmap(
 ggsave(file.path(plot_folder, "12B-Heatmap_RSSselected_scaledAUC.png"),
        h_scaled, width = 12, height = 8, dpi = 300)
 
-# scaling is across all cells, 1 regulon at a time ;) 
-# Note -: from this, we can see very clear TAS specific activity in top regulons per TAS -> but, it varies to some degree how much!                 
+# scaling is across all cells, one regulon at a time ;) 
+# Note -: from this, see very clear TAS-specific activity in top regulons per TAS -> but, degree varies           
 
 # optional
 DefaultAssay(so) <- "RNA"
