@@ -740,40 +740,71 @@ ggsave(file.path(plot_folder, "12B-Heatmap_RSSselected_scaledAUC.png"),
 # optional
 DefaultAssay(so) <- "RNA"
 
+#
+
+# 13-14 - a simple visual of top regulons per TAS in different UMAP spaces;
+#         RNA-UMAP and SCENIC-UMAP (continuous AUC),
+#         plus optional binary overlay (14B). Requires u1/u2 built earlier.
+
+# Hard-coded picks (from RSS and z-score combined ranking in the manuscript)
+lead_regs <- c(
+  apTAS  = "HAND2-(+)-motif",
+  pTAS   = "NR1H4-(+)-motif",  # <- RSS pick; keep 4 (not 2)
+  iTAS1  = "RFX3-(+)-motif",
+  iTAS2  = "YY2-(+)-motif",
+  mscTAS = "DBX2-(+)-motif",
+  myTAS1 = "BACH2-(+)-motif",
+  myTAS2 = "EN1-(+)-motif",
+  myTAS3 = "POU3F4-(+)-motif"
+)
+
+# (optional) auto-pick the top-z regulon per TAS from rssNorm_all
+# lead_regs <- sapply(colnames(rss_res), function(ct) {
+#   rownames(rssNorm_all)[ which.max(rssNorm_all[, ct]) ]
+# })
+
+# Guard: keep only regulons present in current AUC assay
+missing_feats <- setdiff(unname(lead_regs), rownames(so[["pyscenicAUC"]]))
+if (length(missing_feats)) {
+  warning("Skipping missing regulons in pyscenicAUC: ",
+          paste(missing_feats, collapse = ", "))
+}
+lead_regs <- lead_regs[lead_regs %in% rownames(so[["pyscenicAUC"]])]
+
+# 13 — RNA UMAP (continuous AUC) + 14 — SCENIC UMAP (continuous AUC)
+assay_old <- DefaultAssay(so)
+DefaultAssay(so) <- "pyscenicAUC"
+
+p_rna <- purrr::imap(lead_regs, ~ FeaturePlot(so, features = .x, reduction = "umap") +
+                                 labs(title = paste0("Top ", .y, " regulon: ", .x)))
+ggsave(file.path(plot_folder, "13-LeadRegulon_PerTAS_RNAUMAP_contAUC.pdf"),
+       wrap_plots(c(list(u1), p_rna), ncol = 3), width = 18, height = 18)
+
+p_scenic <- purrr::imap(lead_regs, ~ FeaturePlot(so, features = .x, reduction = "SCENIC_UMAP") +
+                                    labs(title = paste0("Top ", .y, " regulon: ", .x)))
+ggsave(file.path(plot_folder, "14-LeadRegulon_PerTAS_SCENICUMAP_contAUC.pdf"),
+       wrap_plots(c(list(u2), p_scenic), ncol = 3), width = 18, height = 18)
+
+DefaultAssay(so) <- assay_old
+
+# 14B — RNA UMAP using binarised activity (on/off)
+assay_old <- DefaultAssay(so)
+DefaultAssay(so) <- "pyscenicAUC_bin"
+
+p_bin <- purrr::imap(lead_regs, ~ FeaturePlot(so, features = .x, reduction = "umap") +
+                                   labs(title = paste0("BIN ", .y, ": ", .x)))
+ggsave(file.path(plot_folder, "14B-LeadRegulon_PerTAS_RNAUMAP_binary.pdf"),
+       wrap_plots(c(list(u1), p_bin), ncol = 3), width = 18, height = 18)
+
+DefaultAssay(so) <- assay_old
+
+#
+
+# below under dev                  
 
 
 
 
-
-
-                 # beow under dev 
-
-                 
-rss_feats <- intersect(rows_show, rownames(so[["pyscenicAUC"]]))  # expect ~35
-message(length(rss_feats), " regulons will be plotted.")
-
-# raw AUC
-h_raw <- DoHeatmap(so, features = rss_feats, slot = "data", raster = TRUE,
-                   group.colors = tas_cols) + ggtitle("RSS-selected regulons – raw AUC")
-ggsave(file.path(plot_folder, "12A-Heatmap_RSSselected_rawAUC.png"), h_raw, width = 7, height = 9, dpi = 300)
-
-# scaled AUC
-so <- ScaleData(so, assay = "pyscenicAUC", features = rss_feats, verbose = FALSE)
-row_labs <- sub("-\\(\\+\\)-motif$", "", rss_feats); names(row_labs) <- rss_feats
-h_scaled <- DoHeatmap(so, features = rss_feats, slot = "scale.data", raster = TRUE,
-                      group.colors = tas_cols) +
-  labs(fill = "Scaled AUC (z)") +
-  scale_y_discrete(labels = row_labs) +
-  theme(axis.text.y  = element_text(size = 10),
-        legend.text  = element_text(size = 10),
-        legend.title = element_text(size = 12),
-        legend.position = "right") +
-  guides(colour = "none",
-         fill   = guide_colourbar(barwidth = 0.5, barheight = 7))
-ggsave(file.path(plot_folder, "12B-Heatmap_RSSselected_scaledAUC.png"),
-       h_scaled, width = 12, height = 8, dpi = 300)
-
-# 13/14/14B — lead regulon UMAPs are already above (keep those as-is).
                  
                  
                  
