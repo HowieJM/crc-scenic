@@ -1,6 +1,8 @@
 # crc-scenic
 
-SCENIC-based regulatory network analysis of tumour-associated stroma (TAS) in colorectal cancer - Frank et al 2026
+SCENIC-based regulatory network analysis of tumour-associated stroma (TAS) in colorectal cancer 
+
+For - Frank et al 2026
 
 ## Overview
 
