@@ -2,7 +2,7 @@
 
 SCENIC-based regulatory network analysis of tumour-associated stroma (TAS) in colorectal cancer 
 
-For - Frank et al 2026
+For - Frank et al 2026 -> Full Paper at: https://doi.org/10.1016/j.canlet.2025.218228
 
 ## Overview
 
