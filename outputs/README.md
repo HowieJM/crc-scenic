@@ -2,7 +2,7 @@
 
 # outputs/
 
-This directory contains **all generated outputs** from the analysis scripts in this repository.
+This directory is the default location for all generated outputs from the analysis scripts in this repository.
 
 In general:
 - **Plots, tables, logs, and summary files** are written to `outputs/`
