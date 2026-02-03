@@ -21,8 +21,13 @@
 #   - CSVs: regulon incidence, thresholds, lists
 #   - Plots/logs under outputs/03_downstream/
 #
-# Tested in: RStudio v 2023.09.0  # R v 4.4.0 / 4.4.2, and
-#            RStudio v 2024.04.1  # R v 4.4.0
+#  Initial script tested in: RStudio v 2023.09.0  # R v 4.4.0 / 4.4.2, and
+#                            RStudio v 2024.04.1  # R v 4.4.0
+#
+# NOTE:
+# This script is a cleaned and streamlined version of the analysis used for the
+# figures reported in Frank et al. (2026). Non-essential exploratory code has been
+# removed for clarity and reuse. Minor differences in aesthetics etc. may thus arise.
 # ======================================================================================
 
 
