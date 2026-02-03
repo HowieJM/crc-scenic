@@ -3,13 +3,15 @@
 
 SCENIC-based regulatory network analysis of tumour-associated stroma (TAS) in colorectal cancer 
 
-For - Frank et al 2026 -> Full Paper at: https://doi.org/10.1016/j.canlet.2025.218228
+For - Frank et al 2026      ->      Full Paper at: https://doi.org/10.1016/j.canlet.2025.218228
 
 ## Citation
 
-If you use this repository, please cite it via GitHub’s “Cite this repository” button (uses `CITATION.cff`).
+If you use this repository, please cite the Zenodo archive as well as the full Cancer Letters paper:
 
-A Zenodo DOI will be added after the first tagged release.
+https://doi.org/10.5281/zenodo.18471338
+
+Formatted citations (BibTeX, APA, etc.) are available via the Zenodo record and GitHub’s “Cite this repository” feature.
 
 ## Overview
 
