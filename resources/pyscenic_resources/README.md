@@ -15,7 +15,7 @@
 
 | Path under `pyscenic_resources/` | File (what it is) | Source / link | Notes |
 |---|---|---|---|
-| `Joanito_StromaOnly_Filtered_Seurat_Object_All_Cohorts_FullDataSet_SCopeLoomR.loom` | **SCENIC input (TAS-only) loom.** Derived from **Joanito et al.** CRC scRNA-seq; **TAS re-annotation/selection** by M. Frank; **SCENIC pre-filtering + loom export** by J. Howie. | Raw scRNA-seq: Synapse **syn26844071** → https://www.synapse.org/#!Synapse:syn26844071/ • For access to the TAS subset Seurat or filtered loom, contact **Dietmar Herndler-Brandstetter** <dietmar.herndler-brandstetter@meduniwien.ac.at>. • For **loom-generation**, see scripts or **James Howie**. |
+| `Joanito_StromaOnly_Filtered_Seurat_Object_All_Cohorts_FullDataSet_SCopeLoomR.loom` | **SCENIC input (TAS-only) loom.** Derived from **Joanito et al.** CRC scRNA-seq; **TAS re-annotation/selection** by M. Frank; **SCENIC pre-filtering + loom export** by J. Howie. | Raw scRNA-seq: Synapse **syn26844071** → https://www.synapse.org/#!Synapse:syn26844071/ • For access to the TAS subset Seurat or filtered loom, contact **Dietmar Herndler-Brandstetter**. • For **loom-generation**, see scripts or **James Howie**. |
 | `allTFs_hg38.txt` | HG38 TF list (pySCENIC) | Aerts lab / pySCENIC docs | 
 | `hg38_10kbp_up_10kbp_down_full_tx_v10_clust.genes_vs_motifs.rankings.feather` | cisTarget motif rankings (hg38 v10) | Aerts lab resources | 
 | `motifs-v10nr_clust-nr.hgnc-m0.001-o0.0.tbl` | Motif→TF mapping | Aerts lab resources | 
