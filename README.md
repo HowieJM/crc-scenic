@@ -7,7 +7,7 @@ For - Frank et al 2026      ->      Full Paper at: https://doi.org/10.1016/j.can
 
 ## Citation
 
-If you use this repository, please cite the Zenodo archive below, *as well as* the associated Cancer Letters paper:
+If you use this repository, please cite the Zenodo archive below, *in addition to* the associated Cancer Letters paper:
 
 https://doi.org/10.5281/zenodo.18471338
 
@@ -54,3 +54,4 @@ Detailed data provenance (raw data source, TAS re-annotation, and SCENIC pre-fil
 The SCENIC multirun stage is executed via a Nextflow pipeline (see `scripts/02_scenic_multirun/`), based on a fork of the VSN pipelines:
 https://github.com/HowieJM/vsn-pipelines
 
+# JMH, 03/02/2026
