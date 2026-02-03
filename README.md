@@ -4,6 +4,12 @@ SCENIC-based regulatory network analysis of tumour-associated stroma (TAS) in co
 
 For - Frank et al 2026 -> Full Paper at: https://doi.org/10.1016/j.canlet.2025.218228
 
+## Citation
+
+If you use this repository, please cite it via GitHub’s “Cite this repository” button (uses `CITATION.cff`).
+
+A Zenodo DOI will be added after the first tagged release.
+
 ## Overview
 
 This repository implements a three-stage workflow:
@@ -28,6 +34,7 @@ This repository implements a three-stage workflow:
    - Perform pathway enrichment (ORA)
 
 ## Directory structure (simplified)
+```bash
 config/      # Nextflow configuration for SCENIC runs
 resources/   # Required inputs (SCENIC looms, motif databases)
 outputs/     # Local, unversioned outputs (figures, tables, logs)
@@ -35,13 +42,12 @@ scripts/
   ├─ 01_loom_prep/
   ├─ 02_scenic_multirun/
   └─ 03_downstream/
+```
 
 ## Input data
 This pipeline starts from a **pre-filtered, TAS-only Seurat object** derived from colorectal cancer scRNA-seq data.
 Detailed data provenance (raw data source, TAS re-annotation, and SCENIC pre-filtering) is documented in `resources/README.md`.
 
-```markdown
 The SCENIC multirun stage is executed via a Nextflow pipeline (see `scripts/02_scenic_multirun/`), based on a fork of the VSN pipelines:
 https://github.com/HowieJM/vsn-pipelines
-```
 
