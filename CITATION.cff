@@ -8,6 +8,7 @@ authors:
     given-names: James Malcolm
 
 version: 1.0.0
+doi: 10.5281/zenodo.18471338
 
 repository-code: "https://github.com/HowieJM/crc-scenic"
 
