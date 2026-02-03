@@ -16,9 +16,7 @@ This step:
 
 ## Notes on reproducibility
 
-The downstream script provided here reflects the analysis used for the figures and tables reported in Frank et al. (2026), with non-essential exploratory and project-specific code removed for clarity.
-
-The workflow has been simplified to focus on the analyses presented in the manuscript. While the logic and parameters are unchanged, minor differences in plotting or intermediate outputs may occur depending on environment, package versions, or input formatting.
+The downstream script provided here reflects the analysis used for the figures and tables reported in Frank et al. (2026), with non-essential exploratory and project-specific code removed for clarity. The workflow has been simplified to focus on the analyses presented in the manuscript. While the logic and parameters are unchanged, minor differences in plotting or intermediate outputs may occur depending on environment, package versions, or input formatting.
 
 ## Main script
 
