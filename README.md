@@ -54,7 +54,8 @@ scripts/
 This pipeline starts from a **pre-filtered, TAS-only Seurat object** derived from colorectal cancer scRNA-seq data.
 Detailed data provenance (raw data source, TAS re-annotation, and SCENIC pre-filtering) is documented in `resources/README.md`.
 
-The SCENIC multirun stage is executed via a Nextflow pipeline (see `scripts/02_scenic_multirun/`), based on an updated fork of the archived VSN pipelines:
+The SCENIC multirun stage is executed via a Nextflow pipeline (see `scripts/02_scenic_multirun/`), based on an updated fork of the archived VSN pipelines, with minimal changes enabling multirun aggregation using modern cisTarget motif resources:
 https://github.com/HowieJM/vsn-pipelines
+
 
 ### JMH, 03/02/2026
