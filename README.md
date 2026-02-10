@@ -1,9 +1,9 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18471338.svg)](https://doi.org/10.5281/zenodo.18471338)
 # crc-scenic
 
-## SCENIC-based regulatory network analysis of tumour-associated stroma (TAS) in colorectal cancer 
+### SCENIC-based regulatory network analysis of tumour-associated stroma (TAS) in colorectal cancer 
 
-## For - Frank et al 2026      ->      Full Paper at: https://doi.org/10.1016/j.canlet.2025.218228
+### For - Frank et al 2026      ->      Full Paper at: https://doi.org/10.1016/j.canlet.2025.218228
 
 **This repository provides a reproducible, stepwise SCENIC multirun workflow and downstream regulatory analysis for tumour-associated stroma in colorectal cancer.**
 
